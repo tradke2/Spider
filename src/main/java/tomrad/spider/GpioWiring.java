@@ -2,6 +2,14 @@ package tomrad.spider;
 
 public interface GpioWiring {
 
+	public enum PinMode {
+		INPUT, OUTPUT
+	}
+
+	public enum PulldownMode {
+		PUD_UP, PUD_DOWN, PUD_OFF
+	}
+	
 	String OUTPUT = "Output";
 	String INPUT = "Input";
 	String PUD_UP = "PulldownUp";
@@ -10,20 +18,20 @@ public interface GpioWiring {
 
 	int wiringPiSetupGpio();
 
-	int physPinToGpio(int physPin);
+	int configurePin(int physPin);
 
-	void pinMode(int gpioPin, String mode);
+	void pinMode(int gpioPin, PinMode mode);
 
-	void pullUpDnControl(int gpioPin, String pullDownMode);
+	void pullUpDnControl(int gpioPin, PulldownMode pullDownMode);
 
 	void digitalWrite(int gpioPin, int i);
 
-	void delay(int i);
+	void delay(long milliseconds);
 
 	void delayMicroseconds(int microseconds);
 
 	int digitalRead(int gpioPin);
 
-	void shutdown();
+	long millis();
 
 }

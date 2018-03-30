@@ -25,20 +25,8 @@ public class WiringMock implements GpioWiring {
 	}
 
 	@Override
-	public int physPinToGpio(int physPin) {
-		return physPin;
-	}
-
-	@Override
-	public void pinMode(int gpioPin, String mode) {
+	public void pinMode(int gpioPin, PinMode mode) {
 		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void pullUpDnControl(int gpioPin, String pullDownMode) {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
@@ -47,15 +35,13 @@ public class WiringMock implements GpioWiring {
 	}
 
 	@Override
-	public void delay(int i) {
+	public void delay(long milliseconds) {
 		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
 	public void delayMicroseconds(int microseconds) {
 		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
@@ -64,9 +50,18 @@ public class WiringMock implements GpioWiring {
 	}
 
 	@Override
-	public void shutdown() {
+	public int configurePin(int physPin) {
+		return physPin;
+	}
+
+	@Override
+	public void pullUpDnControl(int gpioPin, PulldownMode pullDownMode) {
 		// TODO Auto-generated method stub
-		
+	}
+
+	@Override
+	public long millis() {
+		return System.currentTimeMillis();
 	}
 
 }

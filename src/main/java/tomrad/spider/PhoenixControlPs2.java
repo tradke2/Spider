@@ -16,6 +16,7 @@ import static tomrad.spider.Phoenix.GPSeq;
 import static tomrad.spider.Phoenix.GPStart;
 import static tomrad.spider.Phoenix.SpeedControl;
 import static tomrad.spider.SingleLeg.SelectedLeg;
+import static tomrad.spider.SpiController.byteArrayToString;
 
 import java.util.Arrays;
 
@@ -23,7 +24,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tomrad.spider.Gait.TravelLength;
-import static tomrad.spider.SpiController.byteArrayToString;
 
 /**
  * The control input subroutine for the phoenix software is placed in this file.
@@ -167,20 +167,16 @@ public class PhoenixControlPs2 implements Controller {
 	static int PS2CMD = 12; // PS2 controller CMD (Orange)
 	static int PS2SEL = 10; // PS2 Controller SEL (Blue)
 	static int PS2CLK = 14; // PS2 Controller CLK (White)
-//	static int PS2DAT = 13; // PS2 Controller DAT (Brown)
-//	static int PS2CMD = 12; // PS2 controller CMD (Orange)
-//	static int PS2SEL = 10; // PS2 Controller SEL (Blue)
-//	static int PS2CLK = 14; // PS2 Controller CLK (White)
 //	static int PS2DAT = 21; // PS2 Controller DAT (Brown)
 //	static int PS2CMD = 19; // PS2 controller CMD (Orange)
 //	static int PS2SEL = 24; // PS2 Controller SEL (Blue)
 //	static int PS2CLK = 23; // PS2 Controller CLK (White)
-	private byte PadMode = 0x79; // $79
+	private byte PadMode = 0x79;
 	// --------------------------------------------------------------------
 	// [Ps2 Controller Variables]
-	private byte[] DualShock = new byte[7];
-	private byte[] LastButton = new byte[] { 0, 0 };
-	private byte DS2Mode = 0;
+	private short[] DualShock = new short[7];
+	private short[] LastButton = new short[] { 0, 0 };
+	private short DS2Mode = 0;
 	// PS2Index = None
 	private int BodyYOffset = 0;
 	private int BodyYShift = 0;
@@ -238,24 +234,24 @@ public class PhoenixControlPs2 implements Controller {
 			log.debug("InitController: attempt " + (11 - _attempts));
 			spiController.setClkPin();
 
-			LastButton[0] = (byte)0xff;
-			LastButton[1] = (byte)0xff;
+			LastButton[0] = 0xff;
+			LastButton[1] = 0xff;
 			BodyYOffset = 0;
 			BodyYShift = 0;
 
 			// wiringpi.digitalWrite(_clkPin, 0) // low PS2SEL
 			// DS2Mode = transmitBytes(0x01) // shiftout PS2CMD,PS2CLK,FASTLSBPRE,[$1\8]
 			// shiftin PS2DAT,PS2CLK,FASTLSBPOST,[DS2Mode\8]
-			byte[] buf = spiController.transmitBytes(new byte[] { 0x01, 0x42, 0x00, 0x00, 0x00, 0x00, 0x00 });
+			short[] buf = spiController.transmitBytes(new short[] { 0x01, 0x42, 0x00, 0x00, 0x00, 0x00, 0x00 });
 			DS2Mode = buf[1];
 			wiringPi.delay(1); // pause 1
 
 			log.debug("InitController: DS2Mode=0x{}, PadMode=0x{}", format("%x", DS2Mode), format("%x", PadMode));
-			spiController.transmitBytes(new byte[] { 0x01, 0x43, 0x00, 0x01, 0x00 }); // CONFIG_MODE_ENTER0
-			spiController.transmitBytes(new byte[] { 0x01, 0x44, 0x00, 0x01, 0x03, 0x00, 0x00, 0x00, 0x00 }); // SET_MODE_AND_LOCK
-			spiController.transmitBytes(new byte[] { 0x01, 0x4F, 0x00, (byte) 0xFF, (byte) 0xFF, 0x03, 0x00, 0x00, 0x00 }); // SET_DS2_NATIVE_MODE
-			spiController.transmitBytes(new byte[] { 0x01, 0x43, 0x00, 0x00, 0x5A, 0x5A, 0x5A, 0x5A, 0x5A }); // CONFIG_MODE_EXIT_DS2_NATIVE
-			spiController.transmitBytes(new byte[] { 0x01, 0x43, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }); // CONFIG_MODE_EXIT
+			spiController.transmitBytes(new short[] { 0x01, 0x43, 0x00, 0x01, 0x00 }); // CONFIG_MODE_ENTER0
+			spiController.transmitBytes(new short[] { 0x01, 0x44, 0x00, 0x01, 0x03, 0x00, 0x00, 0x00, 0x00 }); // SET_MODE_AND_LOCK
+			spiController.transmitBytes(new short[] { 0x01, 0x4F, 0x00, 0xFF, 0xFF, 0x03, 0x00, 0x00, 0x00 }); // SET_DS2_NATIVE_MODE
+			spiController.transmitBytes(new short[] { 0x01, 0x43, 0x00, 0x00, 0x5A, 0x5A, 0x5A, 0x5A, 0x5A }); // CONFIG_MODE_EXIT_DS2_NATIVE
+			spiController.transmitBytes(new short[] { 0x01, 0x43, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }); // CONFIG_MODE_EXIT
 
 			_attempts -= 1;
 			// sound P9,[100\4000, 100\4500, 100\5000]
@@ -291,14 +287,14 @@ public class PhoenixControlPs2 implements Controller {
 		double TravelRotationY = input.travelRotationY;
 		double TravelLengthZ = input.travelLengthZ;
 
-		byte[] received1 = spiController.transmitBytes(new byte[] { 0x01, 0x42, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 });
+		short[] received1 = spiController.transmitBytes(new short[] { 0x01, 0x42, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 });
 		// log.debug("ControlInput: received1=[%s]" % ', '.join(map(lambda x: "%0x" % x,
 		// received1)))
 		if (log.isDebugEnabled())
 			log.debug("ControlInput: received1={}", byteArrayToString(received1));
 		if (received1[1] == 0x79) {
-			byte[] received2 = spiController.transmitBytes(
-					new byte[] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 });
+			short[] received2 = spiController.transmitBytes(
+					new short[] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 });
 			// log.debug("ControlInput: received2=[%s]" % ', '.join(map(lambda x: "%0x" % x,
 			// received2)))
 			if (log.isDebugEnabled())
@@ -622,8 +618,8 @@ public class PhoenixControlPs2 implements Controller {
 	 * @return The byte received
 	 */
 	@SuppressWarnings("unused")
-	private byte transmitByte(byte theByte) {
-		byte RXdata = spiController.transmitBytes(new byte[] { theByte })[0];
+	private short transmitByte(byte theByte) {
+		short RXdata = spiController.transmitBytes(new short[] { theByte })[0];
 		// print("RXdata=0x%x" % RXdata)
 		return RXdata;
 	}
