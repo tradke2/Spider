@@ -6,10 +6,9 @@ import org.slf4j.LoggerFactory;
 import com.pi4j.wiringpi.Gpio;
 
 /**
- * Implementierung von {@link GpioWiring} auf Basis von Pi4J.
+ * Implementation of {@link GpioWiring} based on Pi4J.
  * <p>
- * Wegen der Abhängigleit zu Pi4J kann diese Klasse nur auf dem RasPi geladen
- * werden.
+ * Due to its dependency on Pi4J this class can only be loaded on Raspberry Pi.
  * </p>
  */
 public class WiringPi implements GpioWiring {
@@ -37,9 +36,9 @@ public class WiringPi implements GpioWiring {
 	 * @see tomrad.spider.GpioWiring#wiringPiSetupGpio()
 	 */
 	@Override
-	public int wiringPiSetupGpio() {
+	public int wiringPiSetup() {
 		log.debug("wiringPiSetupGpio beg");
-		int result = wiringPiSetup();
+		int result = internalWiringPiSetup();
 		log.debug("wiringPiSetupGpio end: result={}", result);
 		return result;
 	}
@@ -153,7 +152,7 @@ public class WiringPi implements GpioWiring {
 		}
 	}
 
-	private int wiringPiSetup() {
+	private int internalWiringPiSetup() {
 		switch (pinNumberingScheme) {
 		case Gpio:
 			return Gpio.wiringPiSetupGpio();

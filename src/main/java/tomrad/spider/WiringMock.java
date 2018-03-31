@@ -8,6 +8,7 @@ public class WiringMock implements GpioWiring {
 	private Deque<Integer> bitQueue = new ArrayDeque<>();
 	private int dataPin;
 	private int commandPin;
+	private long _setupTime;
 	
 	public WiringMock()
 	{
@@ -20,7 +21,12 @@ public class WiringMock implements GpioWiring {
 	}
 	
 	@Override
-	public int wiringPiSetupGpio() {
+	public int wiringPiSetup() {
+		return internalSetup();
+	}
+
+	private int internalSetup() {
+		_setupTime = System.currentTimeMillis();
 		return 0;
 	}
 
@@ -61,7 +67,7 @@ public class WiringMock implements GpioWiring {
 
 	@Override
 	public long millis() {
-		return System.currentTimeMillis();
+		return System.currentTimeMillis() - _setupTime;
 	}
 
 }

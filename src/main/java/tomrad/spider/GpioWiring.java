@@ -1,22 +1,32 @@
 package tomrad.spider;
 
+/**
+ * Interface for encapsualtion of Pi4J. This enables to instantiate the
+ * application on other platforms than Raspberry Pi.
+ */
 public interface GpioWiring {
 
+	/**
+	 * Pin mode: input or output.
+	 */
 	public enum PinMode {
 		INPUT, OUTPUT
 	}
 
+	/**
+	 * Pulldown resistor mode: pullup, pulldown or off.
+	 */
 	public enum PulldownMode {
 		PUD_UP, PUD_DOWN, PUD_OFF
 	}
-	
-	String OUTPUT = "Output";
-	String INPUT = "Input";
-	String PUD_UP = "PulldownUp";
-	String PUD_DOWN = "PUD_DOWN";
-	String PUD_OFF = "PUD_OFF";
 
-	int wiringPiSetupGpio();
+	/**
+	 * Initializes the WiringPi system. The Raspberry Pi implementation delegates to
+	 * one of the Gpio.wiringPiSetup() methods.  
+	 * 
+	 * @return the result of the called Gpio.wiringPiSetup() method.
+	 */
+	int wiringPiSetup();
 
 	int configurePin(int physPin);
 

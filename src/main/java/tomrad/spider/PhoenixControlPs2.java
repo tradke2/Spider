@@ -151,10 +151,6 @@ public class PhoenixControlPs2 implements Controller {
 
 	private final Gait gait;
 
-	private final GpioWiring wiringPi;
-	
-	private final SpiController spiController;
-
 	// [CONSTANTS]
 	private int WalkMode = 0;
 	private int TranslateMode = 1;
@@ -171,12 +167,12 @@ public class PhoenixControlPs2 implements Controller {
 //	static int PS2CMD = 19; // PS2 controller CMD (Orange)
 //	static int PS2SEL = 24; // PS2 Controller SEL (Blue)
 //	static int PS2CLK = 23; // PS2 Controller CLK (White)
+	@SuppressWarnings("unused")
 	private byte PadMode = 0x79;
 	// --------------------------------------------------------------------
 	// [Ps2 Controller Variables]
 	private short[] DualShock = new short[7];
 	private short[] LastButton = new short[] { 0, 0 };
-	private short DS2Mode = 0;
 	// PS2Index = None
 	private int BodyYOffset = 0;
 	private int BodyYShift = 0;
@@ -200,10 +196,11 @@ public class PhoenixControlPs2 implements Controller {
 
 	boolean _IsWiringpiInitialised = false;
 
+	private Ps2Controller ps2Controller;
+
 	PhoenixControlPs2(Gait gait, GpioWiring wiringPi) {
 		this.gait = gait;
-		this.wiringPi = wiringPi;
-		spiController = new SpiController(wiringPi);
+		ps2Controller = new Ps2Controller(wiringPi);
 	}
 
 	// --------------------------------------------------------------------
@@ -215,51 +212,17 @@ public class PhoenixControlPs2 implements Controller {
 	 */
 	@Override
 	public boolean InitController() {
-		int _attempts = 10;
-
-		if (!_IsWiringpiInitialised) {
-			log.debug("InitController: trying to initialise wiringpi");
-			_IsWiringpiInitialised = true;
-			if (wiringPi.wiringPiSetupGpio() == -1) {
-				log.debug("Unable to start wiringPi\n");
-				return false;
-			}
-		}
 
 		log.debug("InitController: setting up pins");
-		spiController.setupPins(PS2CMD, PS2DAT, PS2CLK, PS2SEL);
+		ps2Controller.setupPins(PS2CMD, PS2DAT, PS2CLK, PS2SEL);
 
 		log.debug("InitController: trying to set mode");
-		while (DS2Mode != PadMode && _attempts > 0) {
-			log.debug("InitController: attempt " + (11 - _attempts));
-			spiController.setClkPin();
-
-			LastButton[0] = 0xff;
-			LastButton[1] = 0xff;
-			BodyYOffset = 0;
-			BodyYShift = 0;
-
-			// wiringpi.digitalWrite(_clkPin, 0) // low PS2SEL
-			// DS2Mode = transmitBytes(0x01) // shiftout PS2CMD,PS2CLK,FASTLSBPRE,[$1\8]
-			// shiftin PS2DAT,PS2CLK,FASTLSBPOST,[DS2Mode\8]
-			short[] buf = spiController.transmitBytes(new short[] { 0x01, 0x42, 0x00, 0x00, 0x00, 0x00, 0x00 });
-			DS2Mode = buf[1];
-			wiringPi.delay(1); // pause 1
-
-			log.debug("InitController: DS2Mode=0x{}, PadMode=0x{}", format("%x", DS2Mode), format("%x", PadMode));
-			spiController.transmitBytes(new short[] { 0x01, 0x43, 0x00, 0x01, 0x00 }); // CONFIG_MODE_ENTER0
-			spiController.transmitBytes(new short[] { 0x01, 0x44, 0x00, 0x01, 0x03, 0x00, 0x00, 0x00, 0x00 }); // SET_MODE_AND_LOCK
-			spiController.transmitBytes(new short[] { 0x01, 0x4F, 0x00, 0xFF, 0xFF, 0x03, 0x00, 0x00, 0x00 }); // SET_DS2_NATIVE_MODE
-			spiController.transmitBytes(new short[] { 0x01, 0x43, 0x00, 0x00, 0x5A, 0x5A, 0x5A, 0x5A, 0x5A }); // CONFIG_MODE_EXIT_DS2_NATIVE
-			spiController.transmitBytes(new short[] { 0x01, 0x43, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }); // CONFIG_MODE_EXIT
-
-			_attempts -= 1;
-			// sound P9,[100\4000, 100\4500, 100\5000]
-		}
-
-		if (DS2Mode != PadMode) {
+		if (ps2Controller.initializeController() != 1) {
+			log.debug("InitController: failed to set mode");			
 			return false;
 		}
+		
+		// sound P9,[100\4000, 100\4500, 100\5000]
 
 		_ControlMode = WalkMode;
 		_WalkMethod = 0;
@@ -267,6 +230,7 @@ public class PhoenixControlPs2 implements Controller {
 		_DoubleHeightOn = false;
 
 		// goto InitController // Check if the remote is initialized correctly
+		log.debug("InitController: successfully initialized");			
 		return true;
 	}
 
@@ -287,25 +251,14 @@ public class PhoenixControlPs2 implements Controller {
 		double TravelRotationY = input.travelRotationY;
 		double TravelLengthZ = input.travelLengthZ;
 
-		short[] received1 = spiController.transmitBytes(new short[] { 0x01, 0x42, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 });
-		// log.debug("ControlInput: received1=[%s]" % ', '.join(map(lambda x: "%0x" % x,
-		// received1)))
-		if (log.isDebugEnabled())
-			log.debug("ControlInput: received1={}", byteArrayToString(received1));
-		if (received1[1] == 0x79) {
-			short[] received2 = spiController.transmitBytes(
-					new short[] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 });
-			// log.debug("ControlInput: received2=[%s]" % ', '.join(map(lambda x: "%0x" % x,
-			// received2)))
-			if (log.isDebugEnabled())
-				log.debug("ControlInput: received2={}", byteArrayToString(received2));
+		short[] ps2Data = ps2Controller.readPS2();
+		
+		if (log.isDebugEnabled()) {
+			log.debug("ControlInput: received1={}", byteArrayToString(ps2Data));
 		}
 
-		DualShock = Arrays.copyOfRange(received1, 2, 9);
-		wiringPi.delay(10);
+		DualShock = Arrays.copyOfRange(ps2Data, 2, 9);
 
-		// log.debug("ControlInput: DualShock[0:7]=[%s]" % ', '.join(map(lambda x: "%0x"
-		// % x, DualShock)))
 		if (log.isDebugEnabled())
 			log.debug("ControlInput: DualShock[0:7]={}", Arrays.toString(Arrays.copyOfRange(DualShock, 0, 7)));
 
@@ -608,20 +561,6 @@ public class PhoenixControlPs2 implements Controller {
 		log.debug("ControlInput: LastButton[0]={}, LastButton[1]={}\n", format("%x", LastButton[0]),
 				format("%x", LastButton[1]));
 		return new Gait.TravelLength(TravelLengthX, TravelLengthZ, TravelRotationY);
-	}
-
-	/**
-	 * Bit bang a single byte.
-	 * 
-	 * @param theByte
-	 *            The byte to transmit.
-	 * @return The byte received
-	 */
-	@SuppressWarnings("unused")
-	private short transmitByte(byte theByte) {
-		short RXdata = spiController.transmitBytes(new short[] { theByte })[0];
-		// print("RXdata=0x%x" % RXdata)
-		return RXdata;
 	}
 
 	@Override

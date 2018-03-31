@@ -12,7 +12,6 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 
 @SpringBootApplication
@@ -25,11 +24,9 @@ public class DemoApplication {
 	private String osArch;
 	
 	@Autowired
-	@Lazy
 	private GpioWiring wiringPi;
 	
 	@Autowired
-	@Lazy
 	private Gait gait; 
 	
 	public static void main(String[] args) {
@@ -72,9 +69,5 @@ public class DemoApplication {
 	@PreDestroy
 	public void shutdown()
 	{
-//		if (wiringPi != null)
-//		{
-//			wiringPi.shutdown();
-//		}
 	}
 }

@@ -28,7 +28,7 @@ public class SpiController {
 
 	public void setupPins(int pS2CMD, int pS2DAT, int pS2CLK, int pS2SEL) {
 	
-		wiringPi.wiringPiSetupGpio();
+		wiringPi.wiringPiSetup();
 		
 		_commandPin = wiringPi.configurePin(pS2CMD);
 		_dataPin = wiringPi.configurePin(pS2DAT);
