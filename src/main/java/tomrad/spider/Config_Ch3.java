@@ -20,6 +20,7 @@ public class Config_Ch3 {
 	// [SERIAL CONNECTIONS]
 	// cSSC_OUT         con P10      // Output pin for (SSC32 RX) on BotBoard (Yellow)
 	// cSSC_IN          con P11      // Input pin for (SSC32 TX) on BotBoard (Blue)
+	public final static String cSSC_DEVICE = "/dev/ttyUSB0";
 	public final static int cSSC_BAUD      = 115200;  // SSC32 BAUD rate
 	// --------------------------------------------------------------------
 	// [BB2 PIN NUMBERS]

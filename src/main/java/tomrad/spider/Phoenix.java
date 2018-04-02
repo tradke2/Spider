@@ -1,6 +1,8 @@
 package tomrad.spider;
 //!/usr/bin/env python
 
+import java.io.IOException;
+
 import javax.annotation.PostConstruct;
 
 import org.slf4j.Logger;
@@ -70,75 +72,84 @@ public class Phoenix {
 	// --------------------------------------------------------------------
 	// [GP PLAYER]
 	/** Start the GP Player */
-	static int GPStart = 0;	
+	static int GPStart = 0;
+
 	/** Number of the sequence */
-	static int GPSeq = 0; 		
+	static int GPSeq = 0;
+
 	/** Received data to check the SSC Version */
-	char[] GPVerData = new char[] { 0, 0, 0 }; 
+	char[] GPVerData = new char[] { 0, 0, 0 };
+
 	/** Enables the GP player when the SSC version ends with "GP<cr>" */
-	boolean GPEnable = false;	
+	boolean GPEnable = false;
+
 	// --------------------------------------------------------------------
 	// [OUTPUTS]
-	int LedA = 0;  	// Red
-	int LedB = 0;  	// Green
-	int LedC = 0;  	// Orange
-	boolean Eyes = false;	// Eyes output
+	int LedA = 0; // Red
+	int LedB = 0; // Green
+	int LedC = 0; // Orange
+	boolean Eyes = false; // Eyes output
 	// --------------------------------------------------------------------
 	// [VARIABLES]
-	static int SpeedControl        = 0; // Adjustible Delay
+	static int SpeedControl = 0; // Adjustible Delay
 
 	@Autowired
 	private Logger log;
-	
+
 	@Autowired
 	private Servo servo;
-	
+
 	@Autowired
 	private SingleLeg singleLeg;
-	
+
 	@Autowired
 	private IkRoutines ikRoutines;
-	
-	@Autowired 
+
+	@Autowired
 	private Gait gait;
-	
+
 	@Autowired
 	private Balance balance;
-	
+
 	@Autowired
 	private Controller controller;
-	
-	/** Testhilfe: begrenzt die Anzahl der Durchläufe von MainLoop() */
+
+	/** Debugging aid: limits the count of the main loop */
 	private int remainingLoops = -1;
-	
+
 	// ====================================================================
 	// [INIT]
 	@PostConstruct
-	public void Init()
-	{
-	    // Turning off all the leds
-	    LedA = 0;
-	    LedB = 0;
-	    LedC = 0;
-	    Eyes = false;
-	  
-	    GPEnable = servo.InitServos();  		// Tars Init Positions
-	    log.info("InitServos: GPEnable={}", GPEnable);
-	    singleLeg.InitSingleLeg();
-	    ikRoutines.InitIK();
-	    gait.InitGait();
+	public void Init() {
+		// Turning off all the leds
+		LedA = 0;
+		LedB = 0;
+		LedC = 0;
+		Eyes = false;
 
-	    // Initialize Controller
-	    boolean success = controller.InitController();
-	    log.info("InitController: success={}", success);
-	    if (!success)
-	    {
-	        quit();
-	    }
-	        
-	    // SSC
-	    controller.setHexOn(false);
-	    return;
+		try {
+			GPEnable = servo.InitServos(); // Tars Init Positions
+			log.info("InitServos: GPEnable={}", GPEnable);
+			singleLeg.InitSingleLeg();
+			ikRoutines.InitIK();
+			gait.InitGait();
+
+			// Initialize Controller
+			boolean success = controller.InitController();
+			log.info("InitController: success={}", success);
+			if (!success) {
+				quit();
+			}
+
+			// SSC
+			controller.setHexOn(false);
+
+			log.debug("Entering main loop ...");
+			MainLoop();
+		} catch (Exception e) {
+			log.error("Unexpected error", e);
+		}
+		return;
 	}
 
 	private void quit() {
@@ -146,117 +157,107 @@ public class Phoenix {
 
 	// ====================================================================
 	// [MAIN]
-	void MainLoop()
-	{
-//	    TravelLengthX   = 0;     // Current Travel length X
-//	    TravelLengthZ   = 0;     // Current Travel length Z
-//	    TravelRotationY = 0;     // Current Travel Rotation Y
-	    TravelLength travelLength = new TravelLength(0, 0, 0);
+	void MainLoop() throws IOException {
+		// TravelLengthX = 0; // Current Travel length X
+		// TravelLengthZ = 0; // Current Travel length Z
+		// TravelRotationY = 0; // Current Travel Rotation Y
+		TravelLength travelLength = new TravelLength(0, 0, 0);
 
-	    // main:
-	    while (remainingLoops > 0)
-	    {
-	        //time.sleep(0.5)  // pause 1000
+		// main:
+		while (remainingLoops != 0) {
+			// time.sleep(0.5) // pause 1000
 
-	        // Start time
-	        servo.StartTimer();
-	  
-	        travelLength = controller.ControlInput(travelLength);		// Read input
-	  
-	        // ReadButtons()		// I/O used by the remote
-	        WriteOutputs();		// Write Outputs
+			// Start time
+			servo.StartTimer();
 
-	        // GP Player
-	        if (GPEnable)
-	        {
-	            servo.GPPlayer(GPStart, GPSeq);
-	        }
+			travelLength = controller.ControlInput(travelLength); // Read input
 
-	        // Single leg control
-	        singleLeg.SingleLegControl();
+			// ReadButtons() // I/O used by the remote
+			WriteOutputs(); // Write Outputs
 
-	        // Gait
-	        travelLength = gait.GaitSeq(travelLength);
+			// GP Player
+			if (GPEnable) {
+				servo.GPPlayer(GPStart, GPSeq);
+			}
 
-	        // Balance calculations
-	        BalanceValue balanceValue = balance.CalcBalance();
+			// Single leg control
+			singleLeg.SingleLegControl();
 
-	        // calculate inverse kinematic
-	        CalcIkResult ikResult = ikRoutines.CalcIK(balanceValue);
+			// Gait
+			travelLength = gait.GaitSeq(travelLength);
 
-	        // Check mechanical limits
-			CheckAnglesResult checkedAngles = servo.CheckAngles(ikResult.coxaAngle, ikResult.femurAngle, ikResult.tibiaAngle);
+			// Balance calculations
+			BalanceValue balanceValue = balance.CalcBalance();
 
-	        // Drive Servos
-	        Eyes = servo.ServoDriverMain(Eyes, controller.isHexOn(), controller.isPrevHexOn(), 
-	        		controller.getInputTimeDelay(), SpeedControl, travelLength, checkedAngles.coxaAngle, checkedAngles.femurAngle, 
-	        		checkedAngles.tibiaAngle);
-	    
-	        // Store previous HexOn State
-	        if (controller.isHexOn())
-	        {
-	            controller.setPrevHexOn(true);
-	        }
-	        else
-	        {
-	            controller.setPrevHexOn(false);
-	        }
+			// calculate inverse kinematic
+			CalcIkResult ikResult = ikRoutines.CalcIK(balanceValue);
 
-	        remainingLoops -= 1;
-	        // goto main
-	    }
-	    
-	    // dead:
-	    // goto dead
+			// Check mechanical limits
+			CheckAnglesResult checkedAngles = servo.CheckAngles(ikResult.coxaAngle, ikResult.femurAngle,
+					ikResult.tibiaAngle);
+
+			// Drive Servos
+			Eyes = servo.ServoDriverMain(Eyes, controller.isHexOn(), controller.isPrevHexOn(),
+					controller.getInputTimeDelay(), SpeedControl, travelLength, checkedAngles.coxaAngle,
+					checkedAngles.femurAngle, checkedAngles.tibiaAngle);
+
+			// Store previous HexOn State
+			if (controller.isHexOn()) {
+				controller.setPrevHexOn(true);
+			} else {
+				controller.setPrevHexOn(false);
+			}
+
+			if (remainingLoops > 0) {
+				remainingLoops -= 1;
+			}
+			// goto main
+		}
+
+		// dead:
+		// goto dead
 	}
 
 	// ====================================================================
 	// [ReadButtons] Reading input buttons from the ABB
-	private void ReadButtons()
-	{
-	    // input P4
-	    // input P5
-	    // input P6
+	private void ReadButtons() {
+		// input P4
+		// input P5
+		// input P6
 
-//	    prev_butA = butA
-//	    prev_butB = butB
-//	    prev_butC = butC
+		// prev_butA = butA
+		// prev_butB = butB
+		// prev_butC = butC
 
-	    // butA = IN4
-	    // butB = IN5
-	    // butC = IN6
-	    return;
+		// butA = IN4
+		// butB = IN5
+		// butC = IN6
+		return;
 	}
 
 	// --------------------------------------------------------------------
 	// [WriteOutputs] Updates the state of the leds
-	private void WriteOutputs()
-	{
-	    //   IF ledA = 1 THEN
-	    // 	low p4
-	    //   ENDIF
-	    //   IF ledB = 1 THEN
-	    // 	low p5
-	    //   ENDIF
-	    //   IF ledC = 1 THEN
-	    // 	low p6
-	    //   ENDIF
-	    if (!Eyes)
-	    {
-	        // wiringpi.digitalWrite(cEyesPin, 0)
-	    }
-	    else
-	    {
-	        // wiringpi.digitalWrite(cEyesPin, 1)
-	    }
-	    return;
+	private void WriteOutputs() {
+		// IF ledA = 1 THEN
+		// low p4
+		// ENDIF
+		// IF ledB = 1 THEN
+		// low p5
+		// ENDIF
+		// IF ledC = 1 THEN
+		// low p6
+		// ENDIF
+		if (!Eyes) {
+			// wiringpi.digitalWrite(cEyesPin, 0)
+		} else {
+			// wiringpi.digitalWrite(cEyesPin, 1)
+		}
+		return;
 	}
 
 	// --------------------------------------------------------------------
 	// [Entry point]
-	public void run()
-	{
+	public void run() {
 		Init();
-		MainLoop();
 	}
 }

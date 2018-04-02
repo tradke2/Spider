@@ -1,5 +1,9 @@
 package tomrad.spider;
 
+import static org.junit.Assert.fail;
+
+import java.io.IOException;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -37,7 +41,12 @@ public class PhoenixTest {
 	public void testMainLoop() {
 		controller.setHexOn(true);
 		Whitebox.setInternalState(testee, "remainingLoops", 1);
-		testee.MainLoop();
+		try {
+			testee.MainLoop();
+		} catch (IOException e) {
+			e.printStackTrace();
+			fail();
+		}
 	}
 
 }

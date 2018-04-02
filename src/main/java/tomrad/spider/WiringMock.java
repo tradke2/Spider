@@ -1,5 +1,7 @@
 package tomrad.spider;
 
+import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
@@ -68,6 +70,42 @@ public class WiringMock implements GpioWiring {
 	@Override
 	public long millis() {
 		return System.currentTimeMillis() - _setupTime;
+	}
+
+	@Override
+	public void serialOpen(String device, int baud) throws IOException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void serialFlush() throws IllegalStateException, IOException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void serialWrite(Charset charset, String data) throws IllegalStateException, IOException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void serialClose() throws IllegalStateException, IOException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public String serialReadUntil(char endOfLine) throws IOException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void readInto(int[] inputData) throws IOException {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

@@ -1,14 +1,22 @@
 package tomrad.spider;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.Charset;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.pi4j.io.serial.Serial;
+import com.pi4j.io.serial.SerialFactory;
 import com.pi4j.wiringpi.Gpio;
 
 /**
- * Implementation of {@link GpioWiring} based on Pi4J.
+ * Implementierung von {@link GpioWiring} auf Basis von Pi4J.
  * <p>
- * Due to its dependency on Pi4J this class can only be loaded on Raspberry Pi.
+ * Wegen der Abhängigleit zu Pi4J kann diese Klasse nur auf dem RasPi geladen
+ * werden.
  * </p>
  */
 public class WiringPi implements GpioWiring {
@@ -16,6 +24,8 @@ public class WiringPi implements GpioWiring {
 	private static Logger log = LoggerFactory.getLogger(WiringPi.class);
 
 	private final PinNumberingScheme pinNumberingScheme;
+
+	private final Serial serial;
 
 	public enum PinNumberingScheme {
 		WiringPi, Gpio, Physical
@@ -28,6 +38,7 @@ public class WiringPi implements GpioWiring {
 	public WiringPi(PinNumberingScheme pinNumberingScheme) {
 		log.debug("WiringPi ctor: pinNumberingScheme={}", pinNumberingScheme);
 		this.pinNumberingScheme = pinNumberingScheme;
+		serial = SerialFactory.createInstance();
 	}
 
 	/*
@@ -167,6 +178,60 @@ public class WiringPi implements GpioWiring {
 	@Override
 	public long millis() {
 		return Gpio.millis();
+	}
+
+	private void checkState() {
+		if (serial == null) {
+			throw new IllegalStateException(
+					"wiringPiSetup() must be called before any operation on serial device can be done.");
+		}
+	}
+
+	@Override
+	public void serialOpen(String device, int baud) throws IOException {
+		checkState();
+		serial.open(device, baud);
+	}
+
+	@Override
+	public void serialFlush() throws IOException {
+		checkState();
+		serial.flush();
+	}
+
+	@Override
+	public void serialWrite(Charset charset, String data) throws IOException {
+		checkState();
+		serial.write(charset, data);
+	}
+
+	@Override
+	public void serialClose() throws IOException {
+		checkState();
+		serial.close();
+	}
+
+	@Override
+	public String serialReadUntil(char endOfLine) throws IOException {
+		checkState();
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		InputStream is = serial.getInputStream();
+		int inByte = is.read();
+		while (inByte > -1 && inByte != endOfLine) {
+			bos.write(inByte);
+			inByte = is.read();
+		}
+		bos.flush();
+		return bos.toString("US-ASCII");
+	}
+
+	@Override
+	public void readInto(int[] inputData) throws IOException {
+		checkState();
+		byte[] inBytes = serial.read(inputData.length);
+		for (int i = 0; i < inputData.length; i++) {
+			inputData[i] = inBytes[i] & 0xff;
+		}
 	}
 
 }

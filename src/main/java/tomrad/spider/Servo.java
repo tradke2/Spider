@@ -68,6 +68,8 @@ import static tomrad.spider.IkRoutines.cInitPosY;
 import static tomrad.spider.IkRoutines.cInitPosZ;
 import static tomrad.spider.SingleLeg.AllDown;
 
+import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 
 import org.slf4j.Logger;
@@ -79,13 +81,13 @@ import tomrad.spider.Gait.TravelLength;
 @Component
 public class Servo {
 
-	private static final byte CR = 13;
+	private static final char CR = 13;
 
 	@Autowired
 	private Logger log;
 
 	@Autowired
-	Serial ser;
+	GpioWiring wiringPi;
 
 	// Build tables for Leg configuration like I/O and MIN/MAX values to easy access
 	// values using a FOR loop
@@ -171,7 +173,7 @@ public class Servo {
 	// --------------------------------------------------------------------
 	// [SERVO DRIVER MAIN] Updates the positions of the servos
 	public boolean ServoDriverMain(boolean Eyes, boolean HexOn, boolean Prev_HexOn, int InputTimeDelay,
-			int SpeedControl, TravelLength travelLength, int[] coxaAngle, int[] femurAngle, int[] tibiaAngle) {
+			int SpeedControl, TravelLength travelLength, int[] coxaAngle, int[] femurAngle, int[] tibiaAngle) throws IOException {
 		log.debug("ServoDriveMain: HexOn={}, Prev_HexOn={}\n", HexOn, Prev_HexOn);
 
 		if (HexOn) {
@@ -242,7 +244,7 @@ public class Servo {
 
 	// --------------------------------------------------------------------
 	// [SERVO DRIVER] Updates the positions of the servos
-	private int ServoDriver(int SSCTime, int[] coxaAngle, int[] femurAngle, int[] tibiaAngle) {
+	private int ServoDriver(int SSCTime, int[] coxaAngle, int[] femurAngle, int[] tibiaAngle) throws IOException {
 
 		// Update Right Legs
 		for (int LegIndex = 0; LegIndex < 3; LegIndex++) {
@@ -271,7 +273,7 @@ public class Servo {
 
 	// --------------------------------------------------------------------
 	// [FREE SERVOS] Frees all the servos
-	private void FreeServos() {
+	private void FreeServos() throws IOException {
 		log.debug("FreeServos:");
 		for (int LegIndex = 0; LegIndex < 32; LegIndex++) {
 			serout("//", LegIndex, "P0");
@@ -283,7 +285,7 @@ public class Servo {
 	// --------------------------------------------------------------------
 	// [GET SSC VERSION] Checks SSC version number if it ends with "GP"
 	// enable the GP player if it does
-	private boolean GetSSCVersion() {
+	private boolean GetSSCVersion() throws IOException {
 		pause(10);
 		boolean GPEnable = false;
 		log.debug("Check SSC-version");
@@ -313,7 +315,8 @@ public class Servo {
 
 	// --------------------------------------------------------------------
 	// [INIT SERVOS] Sets start positions for each leg
-	boolean InitServos() {
+	boolean InitServos() throws IOException {
+		
 		for (int LegIndex = 0; LegIndex < 6; LegIndex++) {
 			LegPosX[LegIndex] = cInitPosX[LegIndex]; // Set start positions for each leg
 			LegPosY[LegIndex] = cInitPosY[LegIndex];
@@ -324,6 +327,7 @@ public class Servo {
 		SSCTime = 150;
 
 		// ser = serial.Serial("/dev/ttyUSB0", Config_Ch3.cSSC_BAUD, timeout=5);
+		wiringPi.serialOpen(Config_Ch3.cSSC_DEVICE, Config_Ch3.cSSC_BAUD);
 		boolean GPEnable = GetSSCVersion();
 
 		return GPEnable;
@@ -336,7 +340,7 @@ public class Servo {
 	int GPStatToStep = 0;
 	int GPStatTime = 0;
 
-	public int GPPlayer(int GPStart, int GPSeq) {
+	public int GPPlayer(int GPStart, int GPSeq) throws IOException {
 		log.debug("GPPlayer: GPStart={}, GPSeq={}", GPStart, GPSeq);
 		// Start sequence
 		if (GPStart == 1) {
@@ -345,7 +349,12 @@ public class Servo {
 			// Wait for GPPlayer to complete sequence
 			while (GPStatSeq != 255 || GPStatFromStep != 0 || GPStatToStep != 0 || GPStatTime != 0) {
 				serout("QPL0\r");
-				serin(GPStatSeq, GPStatFromStep, GPStatToStep, GPStatTime);
+				int[] inBytes = new int[4];
+				serin(inBytes);
+				GPStatSeq=inBytes[0];
+				GPStatFromStep=inBytes[1];
+				GPStatToStep=inBytes[2];
+				GPStatTime=inBytes[3];
 			}
 
 			GPStart = 0;
@@ -365,25 +374,24 @@ public class Servo {
 	}
 
 	// --------------------------------------------------------------------
-	private void serout(Object... outputData) {
+	private void serout(Object... outputData) throws IOException {
 		// log.debug("serout:" + Arrays.toString(outputData));
-		// x = reduce(lambda accu, d: accu + str(d), outputData)
 		String x = Arrays.stream(outputData).map(Object::toString).reduce("", String::concat);
-		// log.debug("serout: x={}", x);
-		ser.write(x);
+		log.debug("serout: x={}", x);
+		wiringPi.serialWrite(Charset.forName("US-ASCII"), x);
 		return;
 	}
 
 	// --------------------------------------------------------------------
-	private void serin(Object... inputData) {
-		ser.readinto(inputData);
+	private void serin(int[] inputData) throws IOException {
+		wiringPi.readInto(inputData);
 		return;
 	}
 
 	// --------------------------------------------------------------------
-	private String readline() {
+	private String readline() throws IOException {
 		log.debug("readline 1");
-		String x = ser.read_until(CR);
+		String x = wiringPi.serialReadUntil(CR);
 		log.debug("readline returned '{}'", x);
 		return x;
 	}
