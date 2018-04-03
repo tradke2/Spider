@@ -11,17 +11,16 @@ public class WiringMock implements GpioWiring {
 	private int dataPin;
 	private int commandPin;
 	private long _setupTime;
-	
-	public WiringMock()
-	{
-		this(0,0);
+
+	public WiringMock() {
+		this(0, 0);
 	}
-	
+
 	public WiringMock(int dataPin, int commandPin) {
 		this.dataPin = dataPin;
 		this.commandPin = commandPin;
 	}
-	
+
 	@Override
 	public int wiringPiSetup() {
 		return internalSetup();
@@ -39,7 +38,8 @@ public class WiringMock implements GpioWiring {
 
 	@Override
 	public void digitalWrite(int gpioPin, int i) {
-		if (gpioPin == commandPin) bitQueue.offer(i);
+		if (gpioPin == commandPin)
+			bitQueue.offer(i);
 	}
 
 	@Override
@@ -75,37 +75,36 @@ public class WiringMock implements GpioWiring {
 	@Override
 	public void serialOpen(String device, int baud) throws IOException {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void serialFlush() throws IllegalStateException, IOException {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void serialWrite(Charset charset, String data) throws IllegalStateException, IOException {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void serialClose() throws IllegalStateException, IOException {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public String serialReadUntil(char endOfLine) throws IOException {
-		// TODO Auto-generated method stub
-		return null;
+		return "SSC32-V2.0USB" + endOfLine;
 	}
 
 	@Override
 	public void readInto(int[] inputData) throws IOException {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 }

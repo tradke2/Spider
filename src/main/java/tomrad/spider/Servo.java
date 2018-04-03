@@ -185,14 +185,14 @@ public class Servo {
 				Eyes = true;
 			}
 
-			log.debug("ServoDriveMain: NomGaitSpeed={}", Gait.NomGaitSpeed);
-			log.debug("ServoDriveMain: InputTimeDelay={}", InputTimeDelay);
-			log.debug("ServoDriveMain: SpeedControl={}", SpeedControl);
+			log.debug("ServoDriverMain: NomGaitSpeed={}", Gait.NomGaitSpeed);
+			log.debug("ServoDriverMain: InputTimeDelay={}", InputTimeDelay);
+			log.debug("ServoDriverMain: SpeedControl={}", SpeedControl);
 
 			// Set SSC time
-			if (Math.abs(travelLength.travelLengthX) > Gait.cTravelDeadZone
-					|| Math.abs(travelLength.travelLengthZ) > Gait.cTravelDeadZone
-					|| Math.abs(travelLength.travelRotationY * 2) > Gait.cTravelDeadZone) {
+			if (Math.abs(travelLength.lengthX) > Gait.cTravelDeadZone
+					|| Math.abs(travelLength.lengthZ) > Gait.cTravelDeadZone
+					|| Math.abs(travelLength.rotationY * 2) > Gait.cTravelDeadZone) {
 				SSCTime = Gait.NomGaitSpeed + (InputTimeDelay * 2) + SpeedControl;
 
 				// Add aditional delay when Balance mode is on
@@ -268,7 +268,7 @@ public class Servo {
 	}
 
 	private int angleToPulseWitdh(int angle) {
-		return (int) Math.rint(angle * cDegreesPerMicroSecond) + 1500;
+		return (int) Math.rint(angle / cDegreesPerMicroSecond) + 1500;
 	}
 
 	// --------------------------------------------------------------------
@@ -276,7 +276,7 @@ public class Servo {
 	private void FreeServos() throws IOException {
 		log.debug("FreeServos:");
 		for (int LegIndex = 0; LegIndex < 32; LegIndex++) {
-			serout("//", LegIndex, "P0");
+			serout("#", LegIndex, "P0");
 		}
 		serout("T200\r");
 		return;

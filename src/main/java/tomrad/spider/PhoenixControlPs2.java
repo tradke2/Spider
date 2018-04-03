@@ -247,9 +247,9 @@ public class PhoenixControlPs2 implements Controller {
 		log.debug("ControlInput: LastButton[0]={}, LastButton[1]={}\n", format("%x", LastButton[0]),
 				format("%x", LastButton[1]));
 
-		double TravelLengthX = input.travelLengthX;
-		double TravelRotationY = input.travelRotationY;
-		double TravelLengthZ = input.travelLengthZ;
+		double TravelLengthX = input.lengthX;
+		double TravelRotationY = input.rotationY;
+		double TravelLengthZ = input.lengthZ;
 
 		short[] ps2Data = ps2Controller.readPS2();
 		

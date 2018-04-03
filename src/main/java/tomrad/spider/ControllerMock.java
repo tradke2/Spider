@@ -5,16 +5,16 @@ import tomrad.spider.Gait.TravelLength;
 public class ControllerMock implements Controller {
 
 	private boolean hexOn;
+	private boolean prevHexOn;
 
 	@Override
 	public boolean InitController() {
-		// TODO Auto-generated method stub
-		return false;
+		return true;
 	}
 
 	@Override
 	public TravelLength ControlInput(TravelLength input) {
-		return new TravelLength(0, 0, 0);
+		return new TravelLength(0, -64, 0);
 	}
 
 	@Override
@@ -24,18 +24,16 @@ public class ControllerMock implements Controller {
 
 	@Override
 	public boolean isHexOn() {
-		return hexOn;
+		return true;
 	}
 
 	@Override
 	public void setPrevHexOn(boolean prevHexOn) {
-		// TODO Auto-generated method stub
-		
+		this.prevHexOn = prevHexOn;
 	}
 
 	@Override
 	public boolean isPrevHexOn() {
-		// TODO Auto-generated method stub
 		return false;
 	}
 

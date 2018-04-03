@@ -178,9 +178,9 @@ public class GaitTest {
 		{
 			testee.GaitSelect(i);
 			TravelLength result = testee.GaitSeq(new TravelLength(0, 0, 0));
-			assertEquals(0.0, result.travelLengthX, 0.0);
-			assertEquals(0.0, result.travelLengthZ, 0.0);
-			assertEquals(0.0, result.travelRotationY, 0.0);
+			assertEquals(0.0, result.lengthX, 0.0);
+			assertEquals(0.0, result.lengthZ, 0.0);
+			assertEquals(0.0, result.rotationY, 0.0);
 		}
 	}
 
@@ -196,9 +196,9 @@ public class GaitTest {
 					{
 						testee.GaitSelect(i);
 						TravelLength result = testee.GaitSeq(new TravelLength(lengthX, lengthZ, rotY));
-						assertEquals(0.0, result.travelLengthX, 0.0);
-						assertEquals(0.0, result.travelLengthZ, 0.0);
-						assertEquals(0.0, result.travelRotationY, 0.0);
+						assertEquals(0.0, result.lengthX, 0.0);
+						assertEquals(0.0, result.lengthZ, 0.0);
+						assertEquals(0.0, result.rotationY, 0.0);
 					}
 				}
 			}
@@ -213,19 +213,19 @@ public class GaitTest {
 			{
 				testee.GaitSelect(i);
 				TravelLength result = testee.GaitSeq(new TravelLength(input, 0, 0));
-				assertNotEquals(0.0, result.travelLengthX, 0.0);
-				assertEquals(0.0, result.travelLengthZ, 0.0);
-				assertEquals(0.0, result.travelRotationY, 0.0);
+				assertNotEquals(0.0, result.lengthX, 0.0);
+				assertEquals(0.0, result.lengthZ, 0.0);
+				assertEquals(0.0, result.rotationY, 0.0);
 				testee.GaitSelect(i);
 				result = testee.GaitSeq(new TravelLength(0, input, 0));
-				assertEquals(0.0, result.travelLengthX, 0.0);
-				assertNotEquals(0.0, result.travelLengthZ, 0.0);
-				assertEquals(0.0, result.travelRotationY, 0.0);
+				assertEquals(0.0, result.lengthX, 0.0);
+				assertNotEquals(0.0, result.lengthZ, 0.0);
+				assertEquals(0.0, result.rotationY, 0.0);
 				testee.GaitSelect(i);
 				result = testee.GaitSeq(new TravelLength(0, 0, input));
-				assertEquals(0.0, result.travelLengthX, 0.0);
-				assertEquals(0.0, result.travelLengthZ, 0.0);
-				assertNotEquals(0.0, result.travelRotationY, 0.0);
+				assertEquals(0.0, result.lengthX, 0.0);
+				assertEquals(0.0, result.lengthZ, 0.0);
+				assertNotEquals(0.0, result.rotationY, 0.0);
 			}
 		}
 	}

@@ -274,40 +274,40 @@ public class IkRoutines {
 
 		// Length between the Coxa and Feet
 		double IKFeetPosXZ = Math.sqrt((IKFeetPosX * IKFeetPosX) + (IKFeetPosZ * IKFeetPosZ));
-		logger.debug("LegIK: IKFeetPosXZ={}", IKFeetPosXZ);
+		logger.trace("LegIK: IKFeetPosXZ={}", IKFeetPosXZ);
 
 		// IKSW - Length between shoulder and wrist
 		double IKSW = Math.sqrt((IKFeetPosXZ - cCoxaLength) * (IKFeetPosXZ - cCoxaLength) + (IKFeetPosY * IKFeetPosY));
-		logger.debug("LegIK: IKSW={}", IKSW);
+		logger.trace("LegIK: IKSW={}", IKSW);
 
 		// IKA1 - Angle between SW line and the ground in rad
 		double IKA1 = trig.getBoogTan(IKFeetPosXZ - cCoxaLength, IKFeetPosY);
-		logger.debug("LegIK: IKA1={}", IKA1);
+		logger.trace("LegIK: IKA1={}", IKA1);
 
 		// IKA2 - Angle of the line S>W with respect to the femur in radians
 		double Temp1 = (cFemurLength * cFemurLength) - (cTibiaLength * cTibiaLength) + (IKSW * IKSW);
 		double Temp2 = (2 * cFemurLength) * IKSW;
-		logger.debug("LegIK: Temp1={}, Temp2={}", Temp1, Temp2);
+		logger.trace("LegIK: Temp1={}, Temp2={}", Temp1, Temp2);
 
 		// Angle of the line S>W with respect to the femur in radians, decimals = 4
 		double IKA2 = Math.acos(Temp1 / Temp2);
-		logger.debug("LegIK: IKA2={}", IKA2);
+		logger.trace("LegIK: IKA2={}", IKA2);
 
 		// IKFemurAngle
 		double femurAngle = 90 - ((IKA1 + IKA2) * DEGREES_PER_RADIANT);
-		logger.debug("LegIK: FemurAngle={}", femurAngle);
+		logger.trace("LegIK: FemurAngle={}", femurAngle);
 
 		// IKTibiaAngle
 		Temp1 = (((cFemurLength * cFemurLength) + (cTibiaLength * cTibiaLength)) - (IKSW * IKSW));
 		Temp2 = (2 * cFemurLength * cTibiaLength);
-		logger.debug("LegIK: Temp1={}, Temp2={}", Temp1, Temp2);
+		logger.trace("LegIK: Temp1={}, Temp2={}", Temp1, Temp2);
 		double tibiaAngle = Math.acos(Temp1 / Temp2) * DEGREES_PER_RADIANT - 90;
-		logger.debug("LegIK: TibiaAngle={}", tibiaAngle);
+		logger.trace("LegIK: TibiaAngle={}", tibiaAngle);
 
 		// IKCoxaAngle
 		double BoogTan = trig.getBoogTan(IKFeetPosZ, IKFeetPosX);
 		double coxaAngle = BoogTan * DEGREES_PER_RADIANT;
-		logger.debug("LegIK: CoxaAngle={}", coxaAngle);
+		logger.trace("LegIK: CoxaAngle={}", coxaAngle);
 
 		boolean IKSolution = false;
 		boolean IKSolutionWarning = false;
@@ -418,9 +418,9 @@ public class IkRoutines {
 		// LedC = IKSolutionWarning;
 		// LedA = IKSolutionError;
 
-		logger.debug("CalcIK: CoxaAngle1={}", Arrays.toString(CoxaAngle));
-		logger.debug("CalcIK: FemurAngle1={}", Arrays.toString(FemurAngle));
-		logger.debug("CalcIK: TibiaAngle1={}", Arrays.toString(TibiaAngle));
+		logger.debug("CalcIK: CoxaAngle={}", Arrays.toString(CoxaAngle));
+		logger.debug("CalcIK: FemurAngle={}", Arrays.toString(FemurAngle));
+		logger.debug("CalcIK: TibiaAngle={}", Arrays.toString(TibiaAngle));
 
 		return new CalcIkResult(ikSolution, ikSolutionWarning, ikSolutionError, CoxaAngle, FemurAngle, TibiaAngle);
 	}

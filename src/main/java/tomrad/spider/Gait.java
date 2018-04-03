@@ -5,6 +5,8 @@ import static tomrad.spider.IkRoutines.GaitPosY;
 import static tomrad.spider.IkRoutines.GaitPosZ;
 import static tomrad.spider.IkRoutines.GaitRotY;
 
+import java.util.Arrays;
+
 import javax.annotation.PostConstruct;
 
 import org.slf4j.Logger;
@@ -46,9 +48,6 @@ public class Gait
 	private int GaitStep        = 255; 	// Actual Gait step
 
 	private int GaitLegNr[]     = new int[] {255, 255, 255, 255, 255, 255};  // Init position of the leg
-
-	private double GaitLegNrIn     = Double.NaN;  // Input Number of the leg
-
 
 	// --------------------------------------------------------------------
 	@PostConstruct
@@ -202,6 +201,9 @@ public class Gait
 	public TravelLength GaitSeq(TravelLength input)
 	{
 	    log.debug("GaitSeq: input={}", input.toString());
+		log.debug("GaitSeq: GaitPosX={}", Arrays.toString(GaitPosX));
+		log.debug("GaitSeq: GaitPosY={}", Arrays.toString(GaitPosY));
+		log.debug("GaitSeq: GaitPosZ={}", Arrays.toString(GaitPosZ));
 	    
 	    TravelLength result = new TravelLength(input);
 	    // Calculate Gait sequence
@@ -215,33 +217,36 @@ public class Gait
 	        result = LegGait(LegIndex, LastLeg, result);
 	    }
 	    
+		log.debug("GaitSeq: GaitPosX={}", Arrays.toString(GaitPosX));
+		log.debug("GaitSeq: GaitPosY={}", Arrays.toString(GaitPosY));
+		log.debug("GaitSeq: GaitPosZ={}", Arrays.toString(GaitPosZ));
 	    log.debug("GaitSeq: result={}", result.toString());
 	    return result;
 	}
 
 	public static class TravelLength
 	{
-		public final double travelLengthX;
-		public final double travelLengthZ;
-		public final double travelRotationY;
+		public final double lengthX;
+		public final double lengthZ;
+		public final double rotationY;
 		public TravelLength(double travelLengthX, double travelLengthZ, double travelRotationY) {
-			this.travelLengthX = travelLengthX;
-			this.travelLengthZ = travelLengthZ;
-			this.travelRotationY = travelRotationY;
+			this.lengthX = travelLengthX;
+			this.lengthZ = travelLengthZ;
+			this.rotationY = travelRotationY;
 		}
 		public TravelLength(TravelLength input) {
-			this(input.travelLengthX, input.travelLengthZ, input.travelRotationY);
+			this(input.lengthX, input.lengthZ, input.rotationY);
 		}
 		@Override
 		public int hashCode() {
 			final int prime = 31;
 			int result = 1;
 			long temp;
-			temp = Double.doubleToLongBits(travelLengthX);
+			temp = Double.doubleToLongBits(lengthX);
 			result = prime * result + (int) (temp ^ (temp >>> 32));
-			temp = Double.doubleToLongBits(travelLengthZ);
+			temp = Double.doubleToLongBits(lengthZ);
 			result = prime * result + (int) (temp ^ (temp >>> 32));
-			temp = Double.doubleToLongBits(travelRotationY);
+			temp = Double.doubleToLongBits(rotationY);
 			result = prime * result + (int) (temp ^ (temp >>> 32));
 			return result;
 		}
@@ -254,19 +259,19 @@ public class Gait
 			if (getClass() != obj.getClass())
 				return false;
 			TravelLength other = (TravelLength) obj;
-			if (Double.doubleToLongBits(travelLengthX) != Double.doubleToLongBits(other.travelLengthX))
+			if (Double.doubleToLongBits(lengthX) != Double.doubleToLongBits(other.lengthX))
 				return false;
-			if (Double.doubleToLongBits(travelLengthZ) != Double.doubleToLongBits(other.travelLengthZ))
+			if (Double.doubleToLongBits(lengthZ) != Double.doubleToLongBits(other.lengthZ))
 				return false;
-			if (Double.doubleToLongBits(travelRotationY) != Double.doubleToLongBits(other.travelRotationY))
+			if (Double.doubleToLongBits(rotationY) != Double.doubleToLongBits(other.rotationY))
 				return false;
 			return true;
 		}
 		@Override
 		public String toString() {
 			StringBuilder builder = new StringBuilder();
-			builder.append("TravelLength [travelLengthX=").append(travelLengthX).append(", travelLengthZ=")
-					.append(travelLengthZ).append(", travelRotationY=").append(travelRotationY).append("]");
+			builder.append("TravelLength [lengthX").append(lengthX).append(", lengthZ=")
+					.append(lengthZ).append(", rotationY=").append(rotationY).append("]");
 			return builder.toString();
 		}
 	}
@@ -275,12 +280,13 @@ public class Gait
 	// [GAIT]
 	private TravelLength LegGait(int LegNr, boolean LastLeg, TravelLength input)
 	{
-	    log.debug("Gait: input={}", input.toString());
+	    log.trace("Gait: input={}", input.toString());
+	    
 	    // Check IF the Gait is in motion
-	    GaitInMotion = ((Math.abs(input.travelLengthX) > cTravelDeadZone)
-	                    || (Math.abs(input.travelLengthZ) > cTravelDeadZone)
-	                    || (Math.abs(input.travelRotationY) > cTravelDeadZone));
-	    log.debug("Gait: GaitInMotion={}", GaitInMotion);
+	    GaitInMotion = ((Math.abs(input.lengthX) > cTravelDeadZone)
+	                    || (Math.abs(input.lengthZ) > cTravelDeadZone)
+	                    || (Math.abs(input.rotationY) > cTravelDeadZone));
+	    log.trace("Gait: GaitInMotion={}", GaitInMotion);
 
 	    // Clear values under the cTravelDeadZone
 	    if (!GaitInMotion)
@@ -288,7 +294,6 @@ public class Gait
 	    	input = new TravelLength(0, 0, 0);
 	    }
 
-	    log.debug("Gait: LegNr={}, LastLeg={}, input={}", LegNr, LastLeg, input.toString());
 
 	    // Leg middle up position
 	    // Gait in motion														  Gait NOT in motion, return to home position
@@ -296,7 +301,7 @@ public class Gait
 	        || (!GaitInMotion && GaitStep == GaitLegNr[LegNr]
 	            && ((Math.abs(GaitPosX[LegNr]) > 2) || (Math.abs(GaitPosZ[LegNr]) > 2) || (Math.abs(GaitRotY[LegNr]) > 2))))   // Up
 	    {
-	        log.debug("Gait: Case 1");
+		    log.trace("Gait: LegNr={}, LastLeg={}, Case 1", LegNr, LastLeg);
 	        GaitPosX[LegNr] = 0;
 	        GaitPosY[LegNr] = -LegLiftHeight;
 	        GaitPosZ[LegNr] = 0;
@@ -309,11 +314,11 @@ public class Gait
 	            || (NrLiftedPos == 3 && (GaitStep == GaitLegNr[LegNr] - 1 || GaitStep == GaitLegNr[LegNr] + (StepsInGait - 1))))
 	                && GaitInMotion)
 	        {
-	            log.debug("Gait: Case 2");
-	            GaitPosX[LegNr] = -input.travelLengthX/2;
+			    log.trace("Gait: LegNr={}, LastLeg={}, Case 2", LegNr, LastLeg);
+	            GaitPosX[LegNr] = -input.lengthX/2;
 	            GaitPosY[LegNr] = -LegLiftHeight/(HalfLiftHeigth+1);
-	            GaitPosZ[LegNr] = -input.travelLengthZ/2;
-	            GaitRotY[LegNr] = -input.travelRotationY/2;
+	            GaitPosZ[LegNr] = -input.lengthZ/2;
+	            GaitRotY[LegNr] = -input.rotationY/2;
 	        }
 	        else
 	        {
@@ -321,11 +326,11 @@ public class Gait
 	            if ((NrLiftedPos >= 2) && (GaitStep == GaitLegNr[LegNr] + 1 || GaitStep == GaitLegNr[LegNr]-(StepsInGait-1))
 	                    && GaitInMotion)
 	            {
-	                log.debug("Gait: Case 3");
-	                GaitPosX[LegNr] = input.travelLengthX/2;
+				    log.trace("Gait: LegNr={}, LastLeg={}, Case 3", LegNr, LastLeg);
+	                GaitPosX[LegNr] = input.lengthX/2;
 	                GaitPosY[LegNr] = -LegLiftHeight/(HalfLiftHeigth+1);
-	                GaitPosZ[LegNr] = input.travelLengthZ/2;
-	                GaitRotY[LegNr] = input.travelRotationY/2;
+	                GaitPosZ[LegNr] = input.lengthZ/2;
+	                GaitRotY[LegNr] = input.rotationY/2;
 	            }
 	            else
 	            {
@@ -333,20 +338,20 @@ public class Gait
 	                if ((GaitStep == GaitLegNr[LegNr] + NrLiftedPos || GaitStep == GaitLegNr[LegNr] - (StepsInGait-NrLiftedPos)) 
 	                    && GaitPosY[LegNr] < 0)
 	                {
-	                    log.debug("Gait: Case 4");
-	                    GaitPosX[LegNr] = input.travelLengthX/2;
+	    			    log.trace("Gait: LegNr={}, LastLeg={}, Case 4", LegNr, LastLeg);
+	                    GaitPosX[LegNr] = input.lengthX/2;
 	                    GaitPosY[LegNr] = 0;  // Only move leg down at once if terrain adaption is turned off
-	                    GaitPosZ[LegNr] = input.travelLengthZ/2;
-	                    GaitRotY[LegNr] = input.travelRotationY/2;
+	                    GaitPosZ[LegNr] = input.lengthZ/2;
+	                    GaitRotY[LegNr] = input.rotationY/2;
 	                }
 	                // Move body forward
 	                else
 	                {
-	                    log.debug("Gait: Case 5");
-	                    GaitPosX[LegNr] = GaitPosX[LegNr] - (input.travelLengthX/TLDivFactor);
+	    			    log.trace("Gait: LegNr={}, LastLeg={}, Case 5", LegNr, LastLeg);
+	                    GaitPosX[LegNr] = GaitPosX[LegNr] - (input.lengthX/TLDivFactor);
 	                    GaitPosY[LegNr] = 0;
-	                    GaitPosZ[LegNr] = GaitPosZ[LegNr] - (input.travelLengthZ/TLDivFactor);
-	                    GaitRotY[LegNr] = GaitRotY[LegNr] - (input.travelRotationY/TLDivFactor);
+	                    GaitPosZ[LegNr] = GaitPosZ[LegNr] - (input.lengthZ/TLDivFactor);
+	                    GaitRotY[LegNr] = GaitRotY[LegNr] - (input.rotationY/TLDivFactor);
 	                }
 	            }
 	        }
@@ -356,11 +361,11 @@ public class Gait
 	    if (LastLeg)     // The last leg in this step
 	    {
 	        GaitStep = GaitStep+1;
-	        log.debug("Gait: LastLeg=True, GaitStep={}", GaitStep);
+	        log.trace("Gait: LastLeg=True, GaitStep={}", GaitStep);
 	        if (GaitStep > StepsInGait)
 	        {
 	            GaitStep = 1;
-	            log.debug("Gait: GaiStep>StepsInGait, GaitStep={}", GaitStep);
+	            log.trace("Gait: GaiStep > StepsInGait, GaitStep={}", GaitStep);
 	        }
 	    }
 	    return input;

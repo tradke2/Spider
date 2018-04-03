@@ -1,6 +1,7 @@
 package tomrad.spider;
 
 import static tomrad.spider.IkRoutines.BalanceMode;
+import static tomrad.spider.IkRoutines.DEGREES_PER_RADIANT;
 import static tomrad.spider.IkRoutines.GaitPosX;
 import static tomrad.spider.IkRoutines.GaitPosY;
 import static tomrad.spider.IkRoutines.GaitPosZ;
@@ -10,7 +11,6 @@ import static tomrad.spider.IkRoutines.LegPosZ;
 import static tomrad.spider.IkRoutines.cInitPosY;
 import static tomrad.spider.IkRoutines.cOffsetX;
 import static tomrad.spider.IkRoutines.cOffsetZ;
-import static tomrad.spider.IkRoutines.DEGREES_PER_RADIANT;
 
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -115,6 +115,8 @@ public class Balance {
 	// [CalcBalance]
 	public BalanceValue CalcBalance() {
 
+		logger.debug("CalcBalance: BalancedMode={}", BalanceMode);
+		
 		// reset values used for calculation of balance
 		BalanceValue result = new BalanceValue(0, 0, 0, 0, 0, 0);
 		if (BalanceMode) {
