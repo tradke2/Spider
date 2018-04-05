@@ -4,7 +4,6 @@ import static tomrad.spider.DelayedFormatter.format;
 import static tomrad.spider.Gait.GaitType;
 import static tomrad.spider.Gait.LegLiftHeight;
 import static tomrad.spider.Gait.cRF;
-import static tomrad.spider.Gait.cTravelDeadZone;
 import static tomrad.spider.IkRoutines.BalanceMode;
 import static tomrad.spider.IkRoutines.BodyPosX;
 import static tomrad.spider.IkRoutines.BodyPosY;
@@ -22,8 +21,6 @@ import java.util.Arrays;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import tomrad.spider.Gait.TravelLength;
 
 /**
  * The control input subroutine for the phoenix software is placed in this file.
@@ -163,10 +160,10 @@ public class PhoenixControlPs2 implements Controller {
 	static int PS2CMD = 12; // PS2 controller CMD (Orange)
 	static int PS2SEL = 10; // PS2 Controller SEL (Blue)
 	static int PS2CLK = 14; // PS2 Controller CLK (White)
-//	static int PS2DAT = 21; // PS2 Controller DAT (Brown)
-//	static int PS2CMD = 19; // PS2 controller CMD (Orange)
-//	static int PS2SEL = 24; // PS2 Controller SEL (Blue)
-//	static int PS2CLK = 23; // PS2 Controller CLK (White)
+	// static int PS2DAT = 21; // PS2 Controller DAT (Brown)
+	// static int PS2CMD = 19; // PS2 controller CMD (Orange)
+	// static int PS2SEL = 24; // PS2 Controller SEL (Blue)
+	// static int PS2CLK = 23; // PS2 Controller CLK (White)
 	@SuppressWarnings("unused")
 	private byte PadMode = 0x79;
 	// --------------------------------------------------------------------
@@ -218,19 +215,20 @@ public class PhoenixControlPs2 implements Controller {
 
 		log.debug("InitController: trying to set mode");
 		if (ps2Controller.initializeController() != 1) {
-			log.debug("InitController: failed to set mode");			
+			log.debug("InitController: failed to set mode");
 			return false;
 		}
-		
+
 		// sound P9,[100\4000, 100\4500, 100\5000]
 
 		_ControlMode = WalkMode;
 		_WalkMethod = 0;
 		_DoubleTravelOn = 0;
 		_DoubleHeightOn = false;
+		HexOn = false;
 
 		// goto InitController // Check if the remote is initialized correctly
-		log.debug("InitController: successfully initialized");			
+		log.debug("InitController: successfully initialized");
 		return true;
 	}
 
@@ -247,12 +245,10 @@ public class PhoenixControlPs2 implements Controller {
 		log.debug("ControlInput: LastButton[0]={}, LastButton[1]={}\n", format("%x", LastButton[0]),
 				format("%x", LastButton[1]));
 
-		double TravelLengthX = input.lengthX;
-		double TravelRotationY = input.rotationY;
-		double TravelLengthZ = input.lengthZ;
+		TravelLength newTravelLength = new TravelLength(input);
 
 		short[] ps2Data = ps2Controller.readPS2();
-		
+
 		if (log.isDebugEnabled()) {
 			log.debug("ControlInput: received1={}", byteArrayToString(ps2Data));
 		}
@@ -274,9 +270,7 @@ public class PhoenixControlPs2 implements Controller {
 				BodyRotX = 0;
 				BodyRotY = 0;
 				BodyRotZ = 0;
-				TravelLengthX = 0;
-				TravelLengthZ = 0;
-				TravelRotationY = 0;
+				newTravelLength = new TravelLength(0, 0, 0);
 				BodyYOffset = 0;
 				BodyYShift = 0;
 				SelectedLeg = 255;
@@ -326,9 +320,7 @@ public class PhoenixControlPs2 implements Controller {
 			// Single leg mode
 			if ((DualShock[2] & 0x20) == 0 && (LastButton[1] & 0x20) != 0) // Circle Button test bit5
 			{
-				if (Math.abs(TravelLengthX) < cTravelDeadZone //
-						&& Math.abs(TravelLengthZ) < cTravelDeadZone //
-						&& Math.abs(TravelRotationY * 2) < cTravelDeadZone) //
+				if (!newTravelLength.isInMotion()) //
 				{
 					// Sound P9,[50\4000]
 					if (_ControlMode != SingleLegMode) {
@@ -408,10 +400,8 @@ public class PhoenixControlPs2 implements Controller {
 			if (_ControlMode == WalkMode) {
 				log.debug("ControlInput: _ControlMode == WalkMode");
 				// Switch gates
-				if (((DualShock[1] & 0x01) == 0 && (LastButton[0] & 0x01) != 0 // Select Button test bit0
-						&& Math.abs(TravelLengthX) < cTravelDeadZone // No movement
-						&& Math.abs(TravelLengthZ) < cTravelDeadZone
-						&& Math.abs(TravelRotationY * 2) < cTravelDeadZone)) {
+				if ((DualShock[1] & 0x01) == 0 && (LastButton[0] & 0x01) != 0 // Select Button test bit0
+						&& !newTravelLength.isInMotion()) {
 					if (GaitType < 7) {
 						// Sound P9,[50\4000]
 						GaitType += 1;
@@ -454,6 +444,10 @@ public class PhoenixControlPs2 implements Controller {
 				log.debug("ControlInput: _WalkMethod={}", _WalkMethod);
 
 				// Walking
+				double TravelLengthX = input.lengthX;
+				double TravelRotationY = input.rotationY;
+				double TravelLengthZ = input.lengthZ;
+
 				if (_WalkMethod == 1) // (Walk Methode)
 				{
 					TravelLengthZ = (DualShock[4] - 128); // Right Stick Up/Down
@@ -470,9 +464,9 @@ public class PhoenixControlPs2 implements Controller {
 
 				TravelRotationY = -(DualShock[3] - 128) / 4; // Right Stick Left/Right
 
-				log.debug("ControlInput: TravelLengthX={}, TravelLengthZ={}, TravelRotationY={}", TravelLengthX,
-						TravelLengthZ, TravelRotationY);
+				newTravelLength = new TravelLength(TravelLengthX, TravelLengthZ, TravelRotationY);
 				log.debug("ControlInput: _DoubleTravelOn={}", _DoubleTravelOn);
+				log.debug("ControlInput: newTravelLength={}", newTravelLength);
 			}
 
 			// [Translate functions]
@@ -560,17 +554,12 @@ public class PhoenixControlPs2 implements Controller {
 
 		log.debug("ControlInput: LastButton[0]={}, LastButton[1]={}\n", format("%x", LastButton[0]),
 				format("%x", LastButton[1]));
-		return new Gait.TravelLength(TravelLengthX, TravelLengthZ, TravelRotationY);
+		return newTravelLength;
 	}
 
 	@Override
 	public boolean isHexOn() {
 		return HexOn;
-	}
-
-	@Override
-	public void setHexOn(boolean hexOn) {
-		HexOn = hexOn;
 	}
 
 	@Override

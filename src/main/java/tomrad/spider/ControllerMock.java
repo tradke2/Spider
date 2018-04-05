@@ -1,7 +1,5 @@
 package tomrad.spider;
 
-import tomrad.spider.Gait.TravelLength;
-
 public class ControllerMock implements Controller {
 
 	private boolean hexOn;
@@ -15,11 +13,6 @@ public class ControllerMock implements Controller {
 	@Override
 	public TravelLength ControlInput(TravelLength input) {
 		return new TravelLength(0, -64, 0);
-	}
-
-	@Override
-	public void setHexOn(boolean hexOn) {
-		this.hexOn = hexOn;
 	}
 
 	@Override

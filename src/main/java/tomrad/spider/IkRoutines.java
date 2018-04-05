@@ -53,10 +53,6 @@ import org.springframework.stereotype.Component;
 import tomrad.spider.Balance.BalanceValue;
 import tomrad.spider.Trig.SinCos;
 
-//from Trig import GetSinCos, GetBoogTan, TOFLOAT, TOINT
-//import math
-//import logging
-
 @Component
 public class IkRoutines {
 

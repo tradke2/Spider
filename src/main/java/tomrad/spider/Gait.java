@@ -28,9 +28,6 @@ public class Gait
 	static final int cLM = 4;
 	static final int cLF = 5;
 
-	// [REMOTE]
-	static final int cTravelDeadZone = 4;     // The deadzone for the analog input from the remote
-
 	// --------------------------------------------------------------------
 	// [gait]
 	static int GaitType        = 255; // Gait type
@@ -224,58 +221,6 @@ public class Gait
 	    return result;
 	}
 
-	public static class TravelLength
-	{
-		public final double lengthX;
-		public final double lengthZ;
-		public final double rotationY;
-		public TravelLength(double travelLengthX, double travelLengthZ, double travelRotationY) {
-			this.lengthX = travelLengthX;
-			this.lengthZ = travelLengthZ;
-			this.rotationY = travelRotationY;
-		}
-		public TravelLength(TravelLength input) {
-			this(input.lengthX, input.lengthZ, input.rotationY);
-		}
-		@Override
-		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			long temp;
-			temp = Double.doubleToLongBits(lengthX);
-			result = prime * result + (int) (temp ^ (temp >>> 32));
-			temp = Double.doubleToLongBits(lengthZ);
-			result = prime * result + (int) (temp ^ (temp >>> 32));
-			temp = Double.doubleToLongBits(rotationY);
-			result = prime * result + (int) (temp ^ (temp >>> 32));
-			return result;
-		}
-		@Override
-		public boolean equals(Object obj) {
-			if (this == obj)
-				return true;
-			if (obj == null)
-				return false;
-			if (getClass() != obj.getClass())
-				return false;
-			TravelLength other = (TravelLength) obj;
-			if (Double.doubleToLongBits(lengthX) != Double.doubleToLongBits(other.lengthX))
-				return false;
-			if (Double.doubleToLongBits(lengthZ) != Double.doubleToLongBits(other.lengthZ))
-				return false;
-			if (Double.doubleToLongBits(rotationY) != Double.doubleToLongBits(other.rotationY))
-				return false;
-			return true;
-		}
-		@Override
-		public String toString() {
-			StringBuilder builder = new StringBuilder();
-			builder.append("TravelLength [lengthX").append(lengthX).append(", lengthZ=")
-					.append(lengthZ).append(", rotationY=").append(rotationY).append("]");
-			return builder.toString();
-		}
-	}
-	
 	// --------------------------------------------------------------------
 	// [GAIT]
 	private TravelLength LegGait(int LegNr, boolean LastLeg, TravelLength input)
@@ -283,9 +228,7 @@ public class Gait
 	    log.trace("Gait: input={}", input.toString());
 	    
 	    // Check IF the Gait is in motion
-	    GaitInMotion = ((Math.abs(input.lengthX) > cTravelDeadZone)
-	                    || (Math.abs(input.lengthZ) > cTravelDeadZone)
-	                    || (Math.abs(input.rotationY) > cTravelDeadZone));
+	    GaitInMotion = input.isInMotion();
 	    log.trace("Gait: GaitInMotion={}", GaitInMotion);
 
 	    // Clear values under the cTravelDeadZone

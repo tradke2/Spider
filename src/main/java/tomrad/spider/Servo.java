@@ -76,8 +76,6 @@ import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import tomrad.spider.Gait.TravelLength;
-
 @Component
 public class Servo {
 
@@ -190,9 +188,7 @@ public class Servo {
 			log.debug("ServoDriverMain: SpeedControl={}", SpeedControl);
 
 			// Set SSC time
-			if (Math.abs(travelLength.lengthX) > Gait.cTravelDeadZone
-					|| Math.abs(travelLength.lengthZ) > Gait.cTravelDeadZone
-					|| Math.abs(travelLength.rotationY * 2) > Gait.cTravelDeadZone) {
+			if (travelLength.isInMotion()) {
 				SSCTime = Gait.NomGaitSpeed + (InputTimeDelay * 2) + SpeedControl;
 
 				// Add aditional delay when Balance mode is on

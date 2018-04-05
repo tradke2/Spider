@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import tomrad.spider.Balance.BalanceValue;
-import tomrad.spider.Gait.TravelLength;
 import tomrad.spider.IkRoutines.CalcIkResult;
 import tomrad.spider.Servo.CheckAnglesResult;
 
@@ -128,6 +127,7 @@ public class Phoenix {
 		Eyes = false;
 
 		try {
+			
 			GPEnable = servo.InitServos(); // Tars Init Positions
 			log.info("InitServos: GPEnable={}", GPEnable);
 			singleLeg.InitSingleLeg();
@@ -141,11 +141,9 @@ public class Phoenix {
 				quit();
 			}
 
-			// SSC
-			controller.setHexOn(false);
-
 			log.debug("Entering main loop ...");
 			MainLoop();
+			
 		} catch (Exception e) {
 			log.error("Unexpected error", e);
 		}
