@@ -131,7 +131,6 @@ public class IkRoutines {
 	// --------------------------------------------------------------------
 	// [Balance]
 	public static boolean BalanceMode = false;
-	private double TotalY = Double.NaN; // Total Y distance between the center of the body and the feet
 
 	static final double DEGREES_PER_RADIANT = 180.0 / Math.PI;
 

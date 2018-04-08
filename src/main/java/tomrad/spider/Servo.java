@@ -195,8 +195,7 @@ public class Servo {
 				if (BalanceMode) {
 					SSCTime += 100;
 				}
-			} else // Movement speed excl. Walking
-			{
+			} else { // Movement speed excl. Walking
 				SSCTime = 200 + SpeedControl;
 			}
 
@@ -359,7 +358,7 @@ public class Servo {
 	}
 
 	// --------------------------------------------------------------------
-	private void pause(int milliseconds) {
+	public void pause(int milliseconds) {
 		log.debug("pause: milliseconds={}", milliseconds);
 		try {
 			Thread.sleep(milliseconds);

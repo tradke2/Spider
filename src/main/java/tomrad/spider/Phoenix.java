@@ -1,5 +1,4 @@
 package tomrad.spider;
-//!/usr/bin/env python
 
 import java.io.IOException;
 
@@ -151,6 +150,7 @@ public class Phoenix {
 	}
 
 	private void quit() {
+		System.exit(1);
 	}
 
 	// ====================================================================
@@ -163,7 +163,8 @@ public class Phoenix {
 
 		// main:
 		while (remainingLoops != 0) {
-			// time.sleep(0.5) // pause 1000
+			
+			//servo.pause(500); // pause 1000
 
 			// Start time
 			servo.StartTimer();
@@ -214,23 +215,6 @@ public class Phoenix {
 
 		// dead:
 		// goto dead
-	}
-
-	// ====================================================================
-	// [ReadButtons] Reading input buttons from the ABB
-	private void ReadButtons() {
-		// input P4
-		// input P5
-		// input P6
-
-		// prev_butA = butA
-		// prev_butB = butB
-		// prev_butC = butC
-
-		// butA = IN4
-		// butB = IN5
-		// butC = IN6
-		return;
 	}
 
 	// --------------------------------------------------------------------
