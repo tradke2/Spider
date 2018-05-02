@@ -31,12 +31,6 @@ public class ControllerMock implements Controller {
 	}
 
 	@Override
-	public void setInputTimeDelay(int inputTimeDelay) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
 	public int getInputTimeDelay() {
 		// TODO Auto-generated method stub
 		return 0;

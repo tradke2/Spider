@@ -171,7 +171,8 @@ public class Servo {
 	// --------------------------------------------------------------------
 	// [SERVO DRIVER MAIN] Updates the positions of the servos
 	public boolean ServoDriverMain(boolean Eyes, boolean HexOn, boolean Prev_HexOn, int InputTimeDelay,
-			int SpeedControl, TravelLength travelLength, int[] coxaAngle, int[] femurAngle, int[] tibiaAngle) throws IOException {
+			int SpeedControl, TravelLength travelLength, int[] coxaAngle, int[] femurAngle, int[] tibiaAngle)
+			throws IOException {
 		log.debug("ServoDriveMain: HexOn={}, Prev_HexOn={}\n", HexOn, Prev_HexOn);
 
 		if (HexOn) {
@@ -311,7 +312,7 @@ public class Servo {
 	// --------------------------------------------------------------------
 	// [INIT SERVOS] Sets start positions for each leg
 	boolean InitServos() throws IOException {
-		
+
 		for (int LegIndex = 0; LegIndex < 6; LegIndex++) {
 			LegPosX[LegIndex] = cInitPosX[LegIndex]; // Set start positions for each leg
 			LegPosY[LegIndex] = cInitPosY[LegIndex];
@@ -346,10 +347,10 @@ public class Servo {
 				serout("QPL0\r");
 				int[] inBytes = new int[4];
 				serin(inBytes);
-				GPStatSeq=inBytes[0];
-				GPStatFromStep=inBytes[1];
-				GPStatToStep=inBytes[2];
-				GPStatTime=inBytes[3];
+				GPStatSeq = inBytes[0];
+				GPStatFromStep = inBytes[1];
+				GPStatToStep = inBytes[2];
+				GPStatTime = inBytes[3];
 			}
 
 			GPStart = 0;

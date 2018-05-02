@@ -597,9 +597,4 @@ public class PhoenixControlPs2 implements Controller {
 		return InputTimeDelay;
 	}
 
-	@Override
-	public void setInputTimeDelay(int inputTimeDelay) {
-		InputTimeDelay = inputTimeDelay;
-	}
-
 }

@@ -17,8 +17,6 @@ interface Controller {
 
 	boolean isPrevHexOn();
 
-	void setInputTimeDelay(int inputTimeDelay);
-
 	int getInputTimeDelay();
 
 }
