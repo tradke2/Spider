@@ -220,19 +220,22 @@ public class Servo {
 				// Min 1 ensures that there always is a value in the pause command
 				pause((int) Math.max((PrevSSCTime - CycleTime - 45), 1));
 			}
+			pause(15);
 			PrevSSCTime = ServoDriver(SSCTime, coxaAngle, femurAngle, tibiaAngle);
 		} else {
 			log.debug("ServoDriverMain: switched off");
 
 			// Turn the bot off
-			if (Prev_HexOn || !AllDown) {
-				SSCTime = 600;
-				PrevSSCTime = ServoDriver(SSCTime, coxaAngle, femurAngle, tibiaAngle);
-				sound(new int[][] { { 100, 5000 }, { 80, 4500 }, { 60, 4000 } });
-				pause(600);
-			} else {
-				FreeServos();
-				Eyes = false;
+			if (Prev_HexOn) {
+				if (!AllDown) {
+					SSCTime = 600;
+					PrevSSCTime = ServoDriver(SSCTime, coxaAngle, femurAngle, tibiaAngle);
+					sound(new int[][] { { 100, 5000 }, { 80, 4500 }, { 60, 4000 } });
+					pause(600);
+				} else {
+					FreeServos();
+					Eyes = false;
+				}
 			}
 		}
 		return Eyes;

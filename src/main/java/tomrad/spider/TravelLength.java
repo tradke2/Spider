@@ -1,6 +1,14 @@
 package tomrad.spider;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class TravelLength {
+	
+	private static final Logger logger = LoggerFactory.getLogger(TravelLength.class);
+	
 	public final double lengthX;
 	public final double lengthZ;
 	public final double rotationY;
@@ -49,14 +57,17 @@ public class TravelLength {
 
 	@Override
 	public String toString() {
-		StringBuilder builder = new StringBuilder();
-		builder.append("TravelLength [lengthX").append(lengthX).append(", lengthZ=").append(lengthZ)
-				.append(", rotationY=").append(rotationY).append("]");
-		return builder.toString();
+		return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
+//		StringBuilder builder = new StringBuilder();
+//		builder.append("TravelLength [lengthX").append(lengthX).append(", lengthZ=").append(lengthZ)
+//				.append(", rotationY=").append(rotationY).append("]");
+//		return builder.toString();
 	}
 
 	boolean isInMotion() {
-		return Math.abs(lengthX) > Config_Ch3.cTravelDeadZone || Math.abs(lengthZ) > Config_Ch3.cTravelDeadZone
+		boolean result = Math.abs(lengthX) > Config_Ch3.cTravelDeadZone || Math.abs(lengthZ) > Config_Ch3.cTravelDeadZone
 				|| Math.abs(rotationY * 2) > Config_Ch3.cTravelDeadZone;
+		logger.trace("{}: isInMotion={}", this, result);
+		return result;
 	}
 }
