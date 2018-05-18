@@ -30,7 +30,7 @@ public class Gait
 
 	// --------------------------------------------------------------------
 	// [gait]
-	static int GaitType        = 255; // Gait type
+	private int GaitType        = 255; // Gait type
 
 	static int NomGaitSpeed = 0;  // Nominal speed of the gait
 
@@ -57,9 +57,22 @@ public class Gait
 	    GaitSelect(0);
 	    log.debug("InitGait: GaitType={}, legLiftHeight={}, GaitStep={}, NomGaitSpeed={}", GaitType, LegLiftHeight, GaitStep, NomGaitSpeed);
 	}
+	
+	public int GaitSelectNext()
+	{
+		if (GaitType < 7) {
+			// Sound P9,[50\4000]
+			GaitType += 1;
+		} else {
+			// Sound P9,[50\4000, 50\4500]
+			GaitType = 0;
+		}
+		GaitSelect(GaitType);
+		return GaitType;
+	}
 
 	// --------------------------------------------------------------------
-	public void GaitSelect(int gaitType)
+	protected void GaitSelect(int gaitType)
 	{
 		this.GaitType = gaitType;
 		
@@ -190,7 +203,7 @@ public class Gait
 	    {
 	    	throw new IllegalArgumentException(String.format("Unbekannter GaitType %d.", gaitType));
 	    }
-	    log.debug("GaitSelect: GaitType={}", GaitType);
+	    log.info("GaitSelect: GaitType={}", GaitType);
 	}
 
 	// --------------------------------------------------------------------

@@ -71,6 +71,11 @@ import static tomrad.spider.SingleLeg.AllDown;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Arrays;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -220,7 +225,7 @@ public class Servo {
 				// Min 1 ensures that there always is a value in the pause command
 				pause((int) Math.max((PrevSSCTime - CycleTime - 45), 1));
 			}
-			pause(15);
+			pause(15);	// quickfix: verhindert spastische Zuckungen wenn nicht "InMotion"
 			PrevSSCTime = ServoDriver(SSCTime, coxaAngle, femurAngle, tibiaAngle);
 		} else {
 			log.debug("ServoDriverMain: switched off");
@@ -288,13 +293,17 @@ public class Servo {
 		pause(10);
 		boolean GPEnable = false;
 		log.debug("Check SSC-version");
-		serout("ver\r");
-		String s = readline();
-		if (s.endsWith("GP\r")) {
-			GPEnable = true;
-		} else {
-			sound(new int[][] { { 40, 5000 }, { 40, 5000 } });
-		}
+		String s = null;
+		do
+		{
+			serout("ver\r");		
+			s = readline(1000);
+			if (s.endsWith("GP\r")) {
+				GPEnable = true;
+			} else {
+				sound(new int[][] { { 40, 5000 }, { 40, 5000 } });
+			}
+		} while (s == null);
 		// Index = 0
 		// while 1:
 		// serin(cSSC_IN, cSSC_BAUD, 1000, timeout, [GPVerData[Index]])
@@ -389,12 +398,30 @@ public class Servo {
 
 	// --------------------------------------------------------------------
 	private String readline() throws IOException {
-		log.debug("readline 1");
+		log.trace("readline");
 		String x = wiringPi.serialReadUntil(CR);
-		log.debug("readline returned '{}'", x);
+		log.trace("readline returned '{}'", x);
 		return x;
 	}
 
+	private String readline(int timeoutMillis)
+	{
+		Future<String> f = CompletableFuture.supplyAsync(() -> {
+			try {
+				return readline();
+			} catch (IOException e) {
+				return null;
+			}
+		});
+		try {
+			String s = f.get(timeoutMillis, TimeUnit.MILLISECONDS);
+			return s;
+		} catch (InterruptedException | ExecutionException | TimeoutException e) {
+			log.error("Error reading from servo controller", e);
+			return null;
+		}
+	}
+	
 	// --------------------------------------------------------------------
 	// list of tuples of duration in millisecvons and note in Hz (frequency)
 	private void sound(int[][] listOfDurationAndNotes) {

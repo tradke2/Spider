@@ -1,7 +1,6 @@
 package tomrad.spider;
 
 import static tomrad.spider.DelayedFormatter.format;
-import static tomrad.spider.Gait.GaitType;
 import static tomrad.spider.Gait.LegLiftHeight;
 import static tomrad.spider.Gait.cRF;
 import static tomrad.spider.IkRoutines.BalanceMode;
@@ -413,18 +412,8 @@ public class PhoenixControlPs2 implements Controller {
 				// Switch gates
 				if ((DualShock[1] & 0x01) == 0 && (LastButton[0] & 0x01) != 0 // Select Button test bit0
 						&& !newTravelLength.isInMotion()) {
-					if (GaitType < 7) {
-						// Sound P9,[50\4000]
-						GaitType += 1;
-					} else {
-						// Sound P9,[50\4000, 50\4500]
-						GaitType = 0;
-					}
-					log.debug("ControlInput: GaitType={}", GaitType);
-					
-					// Sound P9,[50\4000+Gaittype*500]
-					// DTMFOUT2 9,[GaitType]
-					gait.GaitSelect(GaitType);
+					int gaitType = gait.GaitSelectNext();
+					log.debug("ControlInput: GaitType={}", gaitType);
 				}
 
 				// Double leg lift height

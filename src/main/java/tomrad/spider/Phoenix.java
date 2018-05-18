@@ -156,9 +156,7 @@ public class Phoenix {
 	// ====================================================================
 	// [MAIN]
 	void MainLoop() throws IOException {
-		// TravelLengthX = 0; // Current Travel length X
-		// TravelLengthZ = 0; // Current Travel length Z
-		// TravelRotationY = 0; // Current Travel Rotation Y
+
 		TravelLength travelLength = new TravelLength(0, 0, 0);
 
 		// main:
