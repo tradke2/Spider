@@ -13,10 +13,10 @@ interface Controller {
 
 	boolean isHexOn();
 
-	void setPrevHexOn(boolean prev_HexOn);
-
 	boolean isPrevHexOn();
 
 	int getInputTimeDelay();
+
+	void togglePrevHexOn();
 
 }

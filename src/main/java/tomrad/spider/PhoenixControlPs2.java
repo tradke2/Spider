@@ -577,13 +577,13 @@ public class PhoenixControlPs2 implements Controller {
 	}
 
 	@Override
-	public void setPrevHexOn(boolean prevHexOn) {
-		PrevHexOn = prevHexOn;
+	public int getInputTimeDelay() {
+		return InputTimeDelay;
 	}
 
 	@Override
-	public int getInputTimeDelay() {
-		return InputTimeDelay;
+	public void togglePrevHexOn() {
+		PrevHexOn = !PrevHexOn;
 	}
 
 }

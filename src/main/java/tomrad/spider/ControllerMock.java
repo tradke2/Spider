@@ -2,7 +2,6 @@ package tomrad.spider;
 
 public class ControllerMock implements Controller {
 
-	private boolean hexOn;
 	private boolean prevHexOn;
 
 	@Override
@@ -21,11 +20,6 @@ public class ControllerMock implements Controller {
 	}
 
 	@Override
-	public void setPrevHexOn(boolean prevHexOn) {
-		this.prevHexOn = prevHexOn;
-	}
-
-	@Override
 	public boolean isPrevHexOn() {
 		return false;
 	}
@@ -34,6 +28,11 @@ public class ControllerMock implements Controller {
 	public int getInputTimeDelay() {
 		// TODO Auto-generated method stub
 		return 0;
+	}
+
+	@Override
+	public void togglePrevHexOn() {
+		prevHexOn = !prevHexOn;
 	}
 
 }

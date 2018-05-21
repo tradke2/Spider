@@ -199,11 +199,7 @@ public class Phoenix {
 					checkedAngles.femurAngle, checkedAngles.tibiaAngle);
 
 			// Store previous HexOn State
-			if (controller.isHexOn()) {
-				controller.setPrevHexOn(true);
-			} else {
-				controller.setPrevHexOn(false);
-			}
+			controller.togglePrevHexOn();
 
 			if (remainingLoops > 0) {
 				remainingLoops -= 1;
