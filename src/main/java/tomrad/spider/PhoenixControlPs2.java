@@ -280,7 +280,7 @@ public class PhoenixControlPs2 implements Controller {
 				// Turn on
 				HexOn = true;
 			}
-			log.debug("ControlInput: Start button: HexOn={}, Prev_HexOn={}", HexOn, PrevHexOn);
+			log.info("ControlInput: Start button: HexOn={}, Prev_HexOn={}", HexOn, PrevHexOn);
 		}
 
 		log.trace("ControlInput: HexOn={}", HexOn);
@@ -583,8 +583,8 @@ public class PhoenixControlPs2 implements Controller {
 	}
 
 	@Override
-	public void togglePrevHexOn() {
-		PrevHexOn = !PrevHexOn;
+	public void rememberHexOn() {
+		PrevHexOn = HexOn;
 	}
 
 }

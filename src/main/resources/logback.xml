@@ -5,5 +5,5 @@
     <logger name="tomrad.spider.IkRoutines" level="INFO"/>
     <logger name="tomrad.spider.Trig" level="INFO"/>
     <logger name="tomrad.spider.PhoenixControlPs2" level="INFO"/>
-    <logger name="tomrad.spider.Servo" level="TRACE"/>
+    <logger name="tomrad.spider.Servo" level="DEBUG"/>
 </configuration>

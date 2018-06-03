@@ -295,20 +295,13 @@ public class Servo {
 		pause(10);
 		boolean GPEnable = false;
 		log.debug("Check SSC-version");
-		String s = null;
-		do
-		{
-			serout("ver\r");		
-			s = readline(10000);
-			if (s != null)
-			{
-				if (s.endsWith("GP\r")) {
-					GPEnable = true;
-				} else {
-					sound(new int[][] { { 40, 5000 }, { 40, 5000 } });
-				}
-			}
-		} while (s == null);
+		serout("ver\r");
+		String s = readline();
+		if (s.endsWith("GP\r")) {
+			GPEnable = true;
+		} else {
+			sound(new int[][] { { 40, 5000 }, { 40, 5000 } });
+		}
 		// Index = 0
 		// while 1:
 		// serin(cSSC_IN, cSSC_BAUD, 1000, timeout, [GPVerData[Index]])

@@ -17,6 +17,6 @@ interface Controller {
 
 	int getInputTimeDelay();
 
-	void togglePrevHexOn();
+	void rememberHexOn();
 
 }

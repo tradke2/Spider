@@ -2,6 +2,7 @@ package tomrad.spider;
 
 public class ControllerMock implements Controller {
 
+	private boolean hexOn;
 	private boolean prevHexOn;
 
 	@Override
@@ -16,12 +17,12 @@ public class ControllerMock implements Controller {
 
 	@Override
 	public boolean isHexOn() {
-		return true;
+		return hexOn;
 	}
 
 	@Override
 	public boolean isPrevHexOn() {
-		return false;
+		return prevHexOn;
 	}
 
 	@Override
@@ -31,8 +32,8 @@ public class ControllerMock implements Controller {
 	}
 
 	@Override
-	public void togglePrevHexOn() {
-		prevHexOn = !prevHexOn;
+	public void rememberHexOn() {
+		prevHexOn = hexOn;
 	}
 
 }
