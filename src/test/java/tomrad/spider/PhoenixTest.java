@@ -32,14 +32,14 @@ public class PhoenixTest {
 
 	@Test
 	public void testRun() {
-		Whitebox.setInternalState(controller, "HexOn", 1);
+		controller.setHexOn(true);
 		Whitebox.setInternalState(testee, "remainingLoops", 1);
 		testee.run();
 	}
 
 	@Test
 	public void testMainLoop() {
-		Whitebox.setInternalState(controller, "HexOn", 1);
+		controller.setHexOn(true);
 		Whitebox.setInternalState(testee, "remainingLoops", 1);
 		try {
 			testee.MainLoop();

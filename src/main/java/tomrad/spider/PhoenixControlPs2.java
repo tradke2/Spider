@@ -1,8 +1,10 @@
 package tomrad.spider;
 
 import static tomrad.spider.DelayedFormatter.format;
+import static tomrad.spider.Gait.GaitType;
 import static tomrad.spider.Gait.LegLiftHeight;
 import static tomrad.spider.Gait.cRF;
+import static tomrad.spider.Gait.cTravelDeadZone;
 import static tomrad.spider.IkRoutines.BalanceMode;
 import static tomrad.spider.IkRoutines.BodyPosX;
 import static tomrad.spider.IkRoutines.BodyPosY;
@@ -20,6 +22,8 @@ import java.util.Arrays;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import tomrad.spider.Gait.TravelLength;
 
 /**
  * The control input subroutine for the phoenix software is placed in this file.
@@ -154,17 +158,17 @@ public class PhoenixControlPs2 implements Controller {
 	private int SingleLegMode = 3;
 	private int GPPlayerMode = 4;
 	// --------------------------------------------------------------------
-	// [PS2 WiringPi Pins The Controller Is Connected To]
+	// [PS2 Physical Pins The Controller Is Connected To]
 	static int PS2DAT = 13; // PS2 Controller DAT (Brown)
 	static int PS2CMD = 12; // PS2 controller CMD (Orange)
 	static int PS2SEL = 10; // PS2 Controller SEL (Blue)
 	static int PS2CLK = 14; // PS2 Controller CLK (White)
-	
-//	static int PS2DAT = 31; // PS2 Controller DAT (Brown)
-//	static int PS2CMD = 11; // PS2 controller CMD (Orange)
-//	static int PS2SEL = 10; // PS2 Controller SEL (Blue)
-//	static int PS2CLK =  6; // PS2 Controller CLK (White)
-	
+//	static int PS2DAT = 21; // PS2 Controller DAT (Brown)
+//	static int PS2CMD = 19; // PS2 controller CMD (Orange)
+//	static int PS2SEL = 24; // PS2 Controller SEL (Blue)
+//	static int PS2CLK = 23; // PS2 Controller CLK (White)
+	@SuppressWarnings("unused")
+	private byte PadMode = 0x79;
 	// --------------------------------------------------------------------
 	// [Ps2 Controller Variables]
 	private short[] DualShock = new short[7];
@@ -176,7 +180,6 @@ public class PhoenixControlPs2 implements Controller {
 	private boolean _DoubleHeightOn = false;
 	private int _DoubleTravelOn = 0;
 	private int _WalkMethod = 0;
-	
 	// --------------------------------------------------------------------
 	// [POSITIONS SINGLE LEG CONTROL]
 	public static boolean SLHold = false; // Single leg control mode
@@ -215,20 +218,19 @@ public class PhoenixControlPs2 implements Controller {
 
 		log.debug("InitController: trying to set mode");
 		if (ps2Controller.initializeController() != 1) {
-			log.debug("InitController: failed to set mode");
+			log.debug("InitController: failed to set mode");			
 			return false;
 		}
-
+		
 		// sound P9,[100\4000, 100\4500, 100\5000]
 
 		_ControlMode = WalkMode;
 		_WalkMethod = 0;
 		_DoubleTravelOn = 0;
 		_DoubleHeightOn = false;
-		HexOn = false;
 
 		// goto InitController // Check if the remote is initialized correctly
-		log.debug("InitController: successfully initialized");
+		log.debug("InitController: successfully initialized");			
 		return true;
 	}
 
@@ -242,26 +244,28 @@ public class PhoenixControlPs2 implements Controller {
 	 */
 	@Override
 	public TravelLength ControlInput(TravelLength input) {
-		log.trace("ControlInput: LastButton[0]={}, LastButton[1]={}\n", format("%x", LastButton[0]),
+		log.debug("ControlInput: LastButton[0]={}, LastButton[1]={}\n", format("%x", LastButton[0]),
 				format("%x", LastButton[1]));
 
-		TravelLength newTravelLength = new TravelLength(input);
+		double TravelLengthX = input.lengthX;
+		double TravelRotationY = input.rotationY;
+		double TravelLengthZ = input.lengthZ;
 
 		short[] ps2Data = ps2Controller.readPS2();
-
+		
 		if (log.isDebugEnabled()) {
-			log.trace("ControlInput: received1={}", byteArrayToString(ps2Data));
+			log.debug("ControlInput: received1={}", byteArrayToString(ps2Data));
 		}
 
 		DualShock = Arrays.copyOfRange(ps2Data, 2, 9);
 
-		if (log.isDebugEnabled()) {
-			log.trace("ControlInput: DualShock[0:7]={}", Arrays.toString(Arrays.copyOfRange(DualShock, 0, 7)));
-		}
-		
+		if (log.isDebugEnabled())
+			log.debug("ControlInput: DualShock[0:7]={}", Arrays.toString(Arrays.copyOfRange(DualShock, 0, 7)));
+
 		// Switch bot on/off
 		if ((DualShock[1] & 0x08) == 0 && (LastButton[0] & 0x08) != 0) // Start Button test bit3
 		{
+			log.debug("ControlInput: Start button: HexOn={}, Prev_HexOn={}\n", HexOn, PrevHexOn);
 			if (HexOn) {
 				// Turn off
 				BodyPosX = 0;
@@ -270,7 +274,9 @@ public class PhoenixControlPs2 implements Controller {
 				BodyRotX = 0;
 				BodyRotY = 0;
 				BodyRotZ = 0;
-				newTravelLength = new TravelLength(0, 0, 0);
+				TravelLengthX = 0;
+				TravelLengthZ = 0;
+				TravelRotationY = 0;
 				BodyYOffset = 0;
 				BodyYShift = 0;
 				SelectedLeg = 255;
@@ -280,10 +286,9 @@ public class PhoenixControlPs2 implements Controller {
 				// Turn on
 				HexOn = true;
 			}
-			log.info("ControlInput: Start button: HexOn={}, Prev_HexOn={}", HexOn, PrevHexOn);
 		}
 
-		log.trace("ControlInput: HexOn={}", HexOn);
+		log.debug("ControlInput: HexOn={}", HexOn);
 
 		if (HexOn) {
 			// [SWITCH MODES]
@@ -301,7 +306,6 @@ public class PhoenixControlPs2 implements Controller {
 						_ControlMode = SingleLegMode;
 					}
 				}
-				log.debug("ControlInput: _ControlMode={}", _ControlMode);
 			}
 
 			// Rotate mode
@@ -317,13 +321,14 @@ public class PhoenixControlPs2 implements Controller {
 						_ControlMode = SingleLegMode;
 					}
 				}
-				log.debug("ControlInput: _ControlMode={}", _ControlMode);
 			}
 
 			// Single leg mode
 			if ((DualShock[2] & 0x20) == 0 && (LastButton[1] & 0x20) != 0) // Circle Button test bit5
 			{
-				if (!newTravelLength.isInMotion()) //
+				if (Math.abs(TravelLengthX) < cTravelDeadZone //
+						&& Math.abs(TravelLengthZ) < cTravelDeadZone //
+						&& Math.abs(TravelRotationY * 2) < cTravelDeadZone) //
 				{
 					// Sound P9,[50\4000]
 					if (_ControlMode != SingleLegMode) {
@@ -336,7 +341,6 @@ public class PhoenixControlPs2 implements Controller {
 						_ControlMode = WalkMode;
 						SelectedLeg = 255;
 					}
-					log.debug("ControlInput: _ControlMode={}", _ControlMode);
 				}
 			}
 
@@ -350,7 +354,6 @@ public class PhoenixControlPs2 implements Controller {
 				} else {
 					_ControlMode = WalkMode;
 				}
-				log.debug("ControlInput: _ControlMode={}", _ControlMode);
 			}
 
 			// [Common functions]
@@ -363,7 +366,6 @@ public class PhoenixControlPs2 implements Controller {
 				} else {
 					// sound P9,[100\4000, 50\8000]
 				}
-				log.debug("ControlInput: BalanceMode={}", BalanceMode);
 			}
 
 			// Stand up, sit down
@@ -374,19 +376,16 @@ public class PhoenixControlPs2 implements Controller {
 				} else {
 					BodyYOffset = 35;
 				}
-				log.debug("ControlInput: BodyYOffset={}", BodyYOffset);
 			}
 
 			if ((DualShock[1] & 0x10) == 0 && (LastButton[0] & 0x10) != 0) // D-Up Button test bit4
 			{
 				BodyYOffset += 10;
-				log.debug("ControlInput: BodyYOffset={}", BodyYOffset);
 			}
 
 			if ((DualShock[1] & 0x40) == 0 && (LastButton[0] & 0x40) != 0) // D-Down Button test bit6
 			{
 				BodyYOffset -= 10;
-				log.debug("ControlInput: BodyYOffset={}", BodyYOffset);
 			}
 
 			if ((DualShock[1] & 0x20) == 0 && (LastButton[0] & 0x20) != 0) // D-Right Button test bit5
@@ -395,7 +394,6 @@ public class PhoenixControlPs2 implements Controller {
 					SpeedControl -= 50;
 					// sound p9, [50\4000]
 				}
-				log.debug("ControlInput: SpeedControl={}", SpeedControl);
 			}
 
 			if ((DualShock[1] & 0x80) == 0 && (LastButton[0] & 0x80) != 0) // D-Left Button test bit7
@@ -404,17 +402,27 @@ public class PhoenixControlPs2 implements Controller {
 					SpeedControl += 50;
 					// sound p9, [50\4000]
 				}
-				log.debug("ControlInput: SpeedControl={}", SpeedControl);
 			}
 
 			// [Walk functions]
 			if (_ControlMode == WalkMode) {
-				log.trace("ControlInput: _ControlMode == WalkMode");
+				log.debug("ControlInput: _ControlMode == WalkMode");
 				// Switch gates
-				if ((DualShock[1] & 0x01) == 0 && (LastButton[0] & 0x01) != 0 // Select Button test bit0
-						&& !newTravelLength.isInMotion()) {
-					int gaitType = gait.GaitSelectNext();
-					log.debug("ControlInput: GaitType={}", gaitType);
+				if (((DualShock[1] & 0x01) == 0 && (LastButton[0] & 0x01) != 0 // Select Button test bit0
+						&& Math.abs(TravelLengthX) < cTravelDeadZone // No movement
+						&& Math.abs(TravelLengthZ) < cTravelDeadZone
+						&& Math.abs(TravelRotationY * 2) < cTravelDeadZone)) {
+					if (GaitType < 7) {
+						// Sound P9,[50\4000]
+						GaitType += 1;
+					} else {
+						// Sound P9,[50\4000, 50\4500]
+						GaitType = 0;
+					}
+
+					// Sound P9,[50\4000+Gaittype*500]
+					// DTMFOUT2 9,[GaitType]
+					gait.GaitSelect(GaitType);
 				}
 
 				// Double leg lift height
@@ -427,7 +435,6 @@ public class PhoenixControlPs2 implements Controller {
 					} else {
 						LegLiftHeight = 50;
 					}
-					log.debug("ControlInput: LegLiftHeight={}", LegLiftHeight);
 				}
 
 				// Double Travel Length
@@ -435,7 +442,6 @@ public class PhoenixControlPs2 implements Controller {
 				{
 					// sound p9, [50\4000]
 					_DoubleTravelOn ^= 1;
-					log.debug("ControlInput: _DoubleTravelOn={}", _DoubleTravelOn);
 				}
 
 				// Switch between Walk method 1 && Walk method 2
@@ -443,16 +449,11 @@ public class PhoenixControlPs2 implements Controller {
 				{
 					// sound p9, [50\4000]
 					_WalkMethod ^= 1;
-					log.debug("ControlInput: _WalkMethod={}", _WalkMethod);
 				}
 
-				log.trace("ControlInput: _WalkMethod={}", _WalkMethod);
+				log.debug("ControlInput: _WalkMethod={}", _WalkMethod);
 
 				// Walking
-				double TravelLengthX = input.lengthX;
-				double TravelRotationY = input.rotationY;
-				double TravelLengthZ = input.lengthZ;
-
 				if (_WalkMethod == 1) // (Walk Methode)
 				{
 					TravelLengthZ = (DualShock[4] - 128); // Right Stick Up/Down
@@ -469,9 +470,9 @@ public class PhoenixControlPs2 implements Controller {
 
 				TravelRotationY = -(DualShock[3] - 128) / 4; // Right Stick Left/Right
 
-				newTravelLength = new TravelLength(TravelLengthX, TravelLengthZ, TravelRotationY);
-				log.trace("ControlInput: _DoubleTravelOn={}", _DoubleTravelOn);
-				log.trace("ControlInput: newTravelLength={}", newTravelLength);
+				log.debug("ControlInput: TravelLengthX={}, TravelLengthZ={}, TravelRotationY={}", TravelLengthX,
+						TravelLengthZ, TravelRotationY);
+				log.debug("ControlInput: _DoubleTravelOn={}", _DoubleTravelOn);
 			}
 
 			// [Translate functions]
@@ -502,7 +503,6 @@ public class PhoenixControlPs2 implements Controller {
 					} else {
 						SelectedLeg = 0;
 					}
-					log.debug("ControlInput: SelectedLeg={}", SelectedLeg);
 				}
 
 				// Single Leg Mode
@@ -510,7 +510,6 @@ public class PhoenixControlPs2 implements Controller {
 					SLLegX = (DualShock[5] - 128) / 2; // Left Stick Right/Left
 					SLLegY = (DualShock[4] - 128) / 10; // Right Stick Up/Down
 					SLLegZ = (DualShock[6] - 128) / 2; // Left Stick Up/Down
-					log.trace("ControlInput: SLLegX={}, SLLegY={}, SLLegZ={}", SLLegX, SLLegY, SLLegZ);
 				}
 
 				// Hold single leg in place
@@ -518,7 +517,6 @@ public class PhoenixControlPs2 implements Controller {
 				{
 					// sound p9, [50\4000]
 					SLHold = !SLHold;
-					log.debug("ControlInput: SLHold={}", SLHold);
 				}
 			}
 
@@ -536,7 +534,6 @@ public class PhoenixControlPs2 implements Controller {
 							// Sound P9,[50\4000, 50\4500]
 							GPSeq = 0;
 						}
-						log.debug("ControlInput: GPSeq={}", GPSeq);
 					}
 				}
 
@@ -544,27 +541,26 @@ public class PhoenixControlPs2 implements Controller {
 				if ((DualShock[2] & 0x02) == 0 && (LastButton[1] & 0x02) != 0) // R2 Button test bit1
 				{
 					GPStart = 1;
-					log.debug("ControlInput: GPStart={}", GPStart);
 				}
 			}
 
 			// Calculate walking time delay
 			InputTimeDelay = 128 - Math.max(Math.max(Math.abs(DualShock[5] - 128), Math.abs(DualShock[6] - 128)),
 					Math.abs(DualShock[3] - 128));
-			log.trace("ControlInput: InputTimeDelay={}", InputTimeDelay);
+
 		}
 
 		// Calculate BodyPosY
 		BodyPosY = Math.max((BodyYOffset + BodyYShift), 0);
-		log.trace("ControlInput: BodyPosY={}", BodyPosY);
+		log.debug("ControlInput: BodyPosY={}", BodyPosY);
 
 		// Store previous state
 		LastButton[0] = DualShock[1];
 		LastButton[1] = DualShock[2];
 
-		log.trace("ControlInput: LastButton[0]={}, LastButton[1]={}\n", format("%x", LastButton[0]),
+		log.debug("ControlInput: LastButton[0]={}, LastButton[1]={}\n", format("%x", LastButton[0]),
 				format("%x", LastButton[1]));
-		return newTravelLength;
+		return new Gait.TravelLength(TravelLengthX, TravelLengthZ, TravelRotationY);
 	}
 
 	@Override
@@ -573,8 +569,18 @@ public class PhoenixControlPs2 implements Controller {
 	}
 
 	@Override
+	public void setHexOn(boolean hexOn) {
+		HexOn = hexOn;
+	}
+
+	@Override
 	public boolean isPrevHexOn() {
 		return PrevHexOn;
+	}
+
+	@Override
+	public void setPrevHexOn(boolean prevHexOn) {
+		PrevHexOn = prevHexOn;
 	}
 
 	@Override
@@ -583,8 +589,8 @@ public class PhoenixControlPs2 implements Controller {
 	}
 
 	@Override
-	public void rememberHexOn() {
-		PrevHexOn = HexOn;
+	public void setInputTimeDelay(int inputTimeDelay) {
+		InputTimeDelay = inputTimeDelay;
 	}
 
 }

@@ -163,9 +163,9 @@ public class Ps2Controller {
 	 * @return The received bytes.
 	 */
 	public short[] readPS2() {
-		log.trace("readPS2: _last_read={}", _last_read);
+		log.debug("readPS2: _last_read={}", _last_read);
 		long timeSince = _wiringPi.millis() - _last_read;
-		log.trace("readPS2: timeSince={}", timeSince);
+		log.debug("readPS2: timeSince={}", timeSince);
 
 		if (timeSince > 1500) // waited too long
 		{

@@ -71,17 +71,12 @@ import static tomrad.spider.SingleLeg.AllDown;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Arrays;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import tomrad.spider.Gait.TravelLength;
 
 @Component
 public class Servo {
@@ -178,8 +173,7 @@ public class Servo {
 	// --------------------------------------------------------------------
 	// [SERVO DRIVER MAIN] Updates the positions of the servos
 	public boolean ServoDriverMain(boolean Eyes, boolean HexOn, boolean Prev_HexOn, int InputTimeDelay,
-			int SpeedControl, TravelLength travelLength, int[] coxaAngle, int[] femurAngle, int[] tibiaAngle)
-			throws IOException {
+			int SpeedControl, TravelLength travelLength, int[] coxaAngle, int[] femurAngle, int[] tibiaAngle) throws IOException {
 		log.debug("ServoDriveMain: HexOn={}, Prev_HexOn={}\n", HexOn, Prev_HexOn);
 
 		if (HexOn) {
@@ -196,14 +190,17 @@ public class Servo {
 			log.debug("ServoDriverMain: SpeedControl={}", SpeedControl);
 
 			// Set SSC time
-			if (travelLength.isInMotion()) {
+			if (Math.abs(travelLength.lengthX) > Gait.cTravelDeadZone
+					|| Math.abs(travelLength.lengthZ) > Gait.cTravelDeadZone
+					|| Math.abs(travelLength.rotationY * 2) > Gait.cTravelDeadZone) {
 				SSCTime = Gait.NomGaitSpeed + (InputTimeDelay * 2) + SpeedControl;
 
 				// Add aditional delay when Balance mode is on
 				if (BalanceMode) {
 					SSCTime += 100;
 				}
-			} else { // Movement speed excl. Walking
+			} else // Movement speed excl. Walking
+			{
 				SSCTime = 200 + SpeedControl;
 			}
 
@@ -227,22 +224,19 @@ public class Servo {
 				// Min 1 ensures that there always is a value in the pause command
 				pause((int) Math.max((PrevSSCTime - CycleTime - 45), 1));
 			}
-			pause(100);	// quickfix: verhindert spastische Zuckungen wenn nicht "InMotion"
 			PrevSSCTime = ServoDriver(SSCTime, coxaAngle, femurAngle, tibiaAngle);
 		} else {
 			log.debug("ServoDriverMain: switched off");
 
 			// Turn the bot off
-			if (Prev_HexOn) {
-				if (!AllDown) {
-					SSCTime = 600;
-					PrevSSCTime = ServoDriver(SSCTime, coxaAngle, femurAngle, tibiaAngle);
-					sound(new int[][] { { 100, 5000 }, { 80, 4500 }, { 60, 4000 } });
-					pause(600);
-				} else {
-					FreeServos();
-					Eyes = false;
-				}
+			if (Prev_HexOn || !AllDown) {
+				SSCTime = 600;
+				PrevSSCTime = ServoDriver(SSCTime, coxaAngle, femurAngle, tibiaAngle);
+				sound(new int[][] { { 100, 5000 }, { 80, 4500 }, { 60, 4000 } });
+				pause(600);
+			} else {
+				FreeServos();
+				Eyes = false;
 			}
 		}
 		return Eyes;
@@ -322,7 +316,7 @@ public class Servo {
 	// --------------------------------------------------------------------
 	// [INIT SERVOS] Sets start positions for each leg
 	boolean InitServos() throws IOException {
-
+		
 		for (int LegIndex = 0; LegIndex < 6; LegIndex++) {
 			LegPosX[LegIndex] = cInitPosX[LegIndex]; // Set start positions for each leg
 			LegPosY[LegIndex] = cInitPosY[LegIndex];
@@ -346,8 +340,6 @@ public class Servo {
 	int GPStatToStep = 0;
 	int GPStatTime = 0;
 
-	private ExecutorService executor = Executors.newSingleThreadExecutor();
-
 	public int GPPlayer(int GPStart, int GPSeq) throws IOException {
 		log.debug("GPPlayer: GPStart={}, GPSeq={}", GPStart, GPSeq);
 		// Start sequence
@@ -359,10 +351,10 @@ public class Servo {
 				serout("QPL0\r");
 				int[] inBytes = new int[4];
 				serin(inBytes);
-				GPStatSeq = inBytes[0];
-				GPStatFromStep = inBytes[1];
-				GPStatToStep = inBytes[2];
-				GPStatTime = inBytes[3];
+				GPStatSeq=inBytes[0];
+				GPStatFromStep=inBytes[1];
+				GPStatToStep=inBytes[2];
+				GPStatTime=inBytes[3];
 			}
 
 			GPStart = 0;
@@ -371,7 +363,7 @@ public class Servo {
 	}
 
 	// --------------------------------------------------------------------
-	public void pause(int milliseconds) {
+	private void pause(int milliseconds) {
 		log.debug("pause: milliseconds={}", milliseconds);
 		try {
 			Thread.sleep(milliseconds);
@@ -398,31 +390,12 @@ public class Servo {
 
 	// --------------------------------------------------------------------
 	private String readline() throws IOException {
-		log.trace("readline");
+		log.debug("readline 1");
 		String x = wiringPi.serialReadUntil(CR);
-		log.trace("readline returned '{}'", x);
+		log.debug("readline returned '{}'", x);
 		return x;
 	}
 
-	private String readline(int timeoutMillis)
-	{
-		Callable<String> c = new Callable<String>() {
-			@Override
-			public String call() throws Exception {
-					return readline();
-			}
-		};
-		Future<String> f = executor.submit(c);
-		try {
-			String s = f.get(timeoutMillis, TimeUnit.MILLISECONDS);
-			log.trace("readline({}) returned '{}'", timeoutMillis, s);
-			return s;
-		} catch (InterruptedException | ExecutionException | TimeoutException e) {
-			log.error("Error reading from servo controller", e);
-			return null;
-		}
-	}
-	
 	// --------------------------------------------------------------------
 	// list of tuples of duration in millisecvons and note in Hz (frequency)
 	private void sound(int[][] listOfDurationAndNotes) {

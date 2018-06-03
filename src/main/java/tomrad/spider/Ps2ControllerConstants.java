@@ -19,12 +19,13 @@ public class Ps2ControllerConstants {
 //	    return x ^ (1<<y) 	// Toggle bit y in x
 
 	// Delays
-	public static final int CLK_DELAY       = 4;
-	public static final int BYTE_DELAY      = 20;
+	public static final int CLK_DELAY       = 1; //4
+	public static final int BYTE_DELAY      = 3;
+	public static final int CMD_DELAY       = 1;
 	public static final int MAX_READ_DELAY  = 10;
 
 	// Maximum number of init tries
-	public static final int MAX_INIT_ATTEMPT = 10;
+	public static final int MAX_INIT_ATTEMPT = 5;
 
 	// Controller Modes - From: http://www.lynxmotion.com/images/files/ps2cmd01.txt 
 	public static final short DIGITALMODE     = 0x41;
