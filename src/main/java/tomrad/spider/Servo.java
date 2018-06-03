@@ -71,8 +71,10 @@ import static tomrad.spider.SingleLeg.AllDown;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Arrays;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -225,7 +227,7 @@ public class Servo {
 				// Min 1 ensures that there always is a value in the pause command
 				pause((int) Math.max((PrevSSCTime - CycleTime - 45), 1));
 			}
-			pause(15);	// quickfix: verhindert spastische Zuckungen wenn nicht "InMotion"
+			pause(100);	// quickfix: verhindert spastische Zuckungen wenn nicht "InMotion"
 			PrevSSCTime = ServoDriver(SSCTime, coxaAngle, femurAngle, tibiaAngle);
 		} else {
 			log.debug("ServoDriverMain: switched off");
@@ -297,11 +299,14 @@ public class Servo {
 		do
 		{
 			serout("ver\r");		
-			s = readline(1000);
-			if (s.endsWith("GP\r")) {
-				GPEnable = true;
-			} else {
-				sound(new int[][] { { 40, 5000 }, { 40, 5000 } });
+			s = readline(10000);
+			if (s != null)
+			{
+				if (s.endsWith("GP\r")) {
+					GPEnable = true;
+				} else {
+					sound(new int[][] { { 40, 5000 }, { 40, 5000 } });
+				}
 			}
 		} while (s == null);
 		// Index = 0
@@ -347,6 +352,8 @@ public class Servo {
 	int GPStatFromStep = 0;
 	int GPStatToStep = 0;
 	int GPStatTime = 0;
+
+	private ExecutorService executor = Executors.newSingleThreadExecutor();
 
 	public int GPPlayer(int GPStart, int GPSeq) throws IOException {
 		log.debug("GPPlayer: GPStart={}, GPSeq={}", GPStart, GPSeq);
@@ -406,15 +413,16 @@ public class Servo {
 
 	private String readline(int timeoutMillis)
 	{
-		Future<String> f = CompletableFuture.supplyAsync(() -> {
-			try {
-				return readline();
-			} catch (IOException e) {
-				return null;
+		Callable<String> c = new Callable<String>() {
+			@Override
+			public String call() throws Exception {
+					return readline();
 			}
-		});
+		};
+		Future<String> f = executor.submit(c);
 		try {
 			String s = f.get(timeoutMillis, TimeUnit.MILLISECONDS);
+			log.trace("readline({}) returned '{}'", timeoutMillis, s);
 			return s;
 		} catch (InterruptedException | ExecutionException | TimeoutException e) {
 			log.error("Error reading from servo controller", e);

@@ -154,16 +154,17 @@ public class PhoenixControlPs2 implements Controller {
 	private int SingleLegMode = 3;
 	private int GPPlayerMode = 4;
 	// --------------------------------------------------------------------
-	// [PS2 Physical Pins The Controller Is Connected To]
+	// [PS2 WiringPi Pins The Controller Is Connected To]
 	static int PS2DAT = 13; // PS2 Controller DAT (Brown)
 	static int PS2CMD = 12; // PS2 controller CMD (Orange)
 	static int PS2SEL = 10; // PS2 Controller SEL (Blue)
 	static int PS2CLK = 14; // PS2 Controller CLK (White)
-	// static int PS2DAT = 21; // PS2 Controller DAT (Brown)
-	// static int PS2CMD = 19; // PS2 controller CMD (Orange)
-	// static int PS2SEL = 24; // PS2 Controller SEL (Blue)
-	// static int PS2CLK = 23; // PS2 Controller CLK (White)
-
+	
+//	static int PS2DAT = 31; // PS2 Controller DAT (Brown)
+//	static int PS2CMD = 11; // PS2 controller CMD (Orange)
+//	static int PS2SEL = 10; // PS2 Controller SEL (Blue)
+//	static int PS2CLK =  6; // PS2 Controller CLK (White)
+	
 	// --------------------------------------------------------------------
 	// [Ps2 Controller Variables]
 	private short[] DualShock = new short[7];
