@@ -155,12 +155,12 @@ public class Servo {
 	// --------------------------------------------------------------------
 	// [CHECK ANGLES] Checks the mechanical limits of the servos
 	public CheckAnglesResult CheckAngles(int[] coxaAngle, int[] femurAngle, int[] tibiaAngle) {
-		log.debug("CheckAngles: cCoxaMin={}", Arrays.toString(cCoxaMin));
-		log.debug("CheckAngles: cCoxaMax={}", Arrays.toString(cCoxaMax));
-		log.debug("CheckAngles: cFemurMin={}", Arrays.toString(cFemurMin));
-		log.debug("CheckAngles: cFemurMax={}", Arrays.toString(cFemurMax));
-		log.debug("CheckAngles: cTibiaMin={}", Arrays.toString(cTibiaMin));
-		log.debug("CheckAngles: cTibiaMax={}", Arrays.toString(cTibiaMax));
+		log.trace("CheckAngles: cCoxaMin={}", Arrays.toString(cCoxaMin));
+		log.trace("CheckAngles: cCoxaMax={}", Arrays.toString(cCoxaMax));
+		log.trace("CheckAngles: cFemurMin={}", Arrays.toString(cFemurMin));
+		log.trace("CheckAngles: cFemurMax={}", Arrays.toString(cFemurMax));
+		log.trace("CheckAngles: cTibiaMin={}", Arrays.toString(cTibiaMin));
+		log.trace("CheckAngles: cTibiaMax={}", Arrays.toString(cTibiaMax));
 
 		for (int LegIndex = 0; LegIndex < 6; LegIndex++) {
 			coxaAngle[LegIndex] = Math.min(Math.max(coxaAngle[LegIndex], cCoxaMin[LegIndex]), cCoxaMax[LegIndex]);
@@ -168,9 +168,9 @@ public class Servo {
 			tibiaAngle[LegIndex] = Math.min(Math.max(tibiaAngle[LegIndex], cTibiaMin[LegIndex]), cTibiaMax[LegIndex]);
 		}
 
-		log.debug("CheckAngles: CoxaAngle={}", Arrays.toString(coxaAngle));
-		log.debug("CheckAngles: FemurAngle={}", Arrays.toString(femurAngle));
-		log.debug("CheckAngles: TibiaAngle={}", Arrays.toString(tibiaAngle));
+		log.trace("CheckAngles: CoxaAngle={}", Arrays.toString(coxaAngle));
+		log.trace("CheckAngles: FemurAngle={}", Arrays.toString(femurAngle));
+		log.trace("CheckAngles: TibiaAngle={}", Arrays.toString(tibiaAngle));
 
 		return new CheckAnglesResult(coxaAngle, femurAngle, tibiaAngle);
 	}
@@ -294,9 +294,10 @@ public class Servo {
 	private boolean GetSSCVersion() throws IOException {
 		pause(10);
 		boolean GPEnable = false;
-		log.debug("Check SSC-version");
+		log.info("Check SSC-version");
 		serout("ver\r");
 		String s = readline();
+		log.info("Got SSC-version '{}'", s);
 		if (s.endsWith("GP\r")) {
 			GPEnable = true;
 		} else {
@@ -383,7 +384,6 @@ public class Servo {
 
 	// --------------------------------------------------------------------
 	private void serout(Object... outputData) throws IOException {
-		// log.debug("serout:" + Arrays.toString(outputData));
 		String x = Arrays.stream(outputData).map(Object::toString).reduce("", String::concat);
 		log.debug("serout: x={}", x);
 		wiringPi.serialWrite(Charset.forName("US-ASCII"), x);

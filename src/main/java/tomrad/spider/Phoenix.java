@@ -140,7 +140,7 @@ public class Phoenix {
 				quit();
 			}
 
-			log.debug("Entering main loop ...");
+			log.info("Entering main loop ...");
 			MainLoop();
 			
 		} catch (Exception e) {

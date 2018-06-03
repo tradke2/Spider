@@ -280,7 +280,12 @@ public class PhoenixControlPs2 implements Controller {
 				// Turn on
 				HexOn = true;
 			}
-			log.info("ControlInput: Start button: HexOn={}, Prev_HexOn={}", HexOn, PrevHexOn);
+			log.debug("ControlInput: Start button: HexOn={}, Prev_HexOn={}", HexOn, PrevHexOn);
+			boolean onOffStateChanged = HexOn != PrevHexOn;
+			if (onOffStateChanged)
+			{
+				log.info("ControlInput: switched {}", HexOn ? "ON" : "OFF");
+			}
 		}
 
 		log.trace("ControlInput: HexOn={}", HexOn);

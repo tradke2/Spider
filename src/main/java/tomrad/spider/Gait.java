@@ -203,7 +203,25 @@ public class Gait
 	    {
 	    	throw new IllegalArgumentException(String.format("Unbekannter GaitType %d.", gaitType));
 	    }
-	    log.info("GaitSelect: GaitType={}", GaitType);
+	    log.info("GaitSelect: GaitType={} ({})", GaitType, getGaitName(GaitType));
+	}
+
+	private String getGaitName(int gaitType) {
+		String[] gaitNames = {
+				"Ripple Gait 6 steps",
+				"Ripple Gait 12 steps",
+				"Quadripple 9 steps",
+				"Tripod 4 steps",
+				"Tripod 6 steps",
+				"Tripod 8 steps",
+				"Wave 12 steps",
+				"Wave 18 steps",
+		};
+		if (gaitType >= 0 && gaitType < gaitNames.length)
+		{
+			return gaitNames[gaitType];
+		}
+		return Integer.toString(gaitType);
 	}
 
 	// --------------------------------------------------------------------
