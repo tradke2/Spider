@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
     <include resource="org/springframework/boot/logging/logback/base.xml"/>
-    <logger name="tomrad.spider" level="TRACE"/>
-    <logger name="tomrad.spider.IkRoutines" level="DEBUG"/>
-    <logger name="tomrad.spider.Trig" level="DEBUG"/>
+    <logger name="tomrad.spider" level="INFO"/>
+    <logger name="tomrad.spider.IkRoutines" level="INFO"/>
+    <logger name="tomrad.spider.Trig" level="INFO"/>
+    <logger name="tomrad.spider.PhoenixControlPs2" level="INFO"/>
+    <logger name="tomrad.spider.Servo" level="DEBUG"/>
 </configuration>

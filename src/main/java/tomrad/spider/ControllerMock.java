@@ -1,7 +1,5 @@
 package tomrad.spider;
 
-import tomrad.spider.Gait.TravelLength;
-
 public class ControllerMock implements Controller {
 
 	private boolean hexOn;
@@ -18,35 +16,24 @@ public class ControllerMock implements Controller {
 	}
 
 	@Override
-	public void setHexOn(boolean hexOn) {
-		this.hexOn = hexOn;
-	}
-
-	@Override
 	public boolean isHexOn() {
-		return true;
-	}
-
-	@Override
-	public void setPrevHexOn(boolean prevHexOn) {
-		this.prevHexOn = prevHexOn;
+		return hexOn;
 	}
 
 	@Override
 	public boolean isPrevHexOn() {
-		return false;
-	}
-
-	@Override
-	public void setInputTimeDelay(int inputTimeDelay) {
-		// TODO Auto-generated method stub
-		
+		return prevHexOn;
 	}
 
 	@Override
 	public int getInputTimeDelay() {
 		// TODO Auto-generated method stub
 		return 0;
+	}
+
+	@Override
+	public void rememberHexOn() {
+		prevHexOn = hexOn;
 	}
 
 }

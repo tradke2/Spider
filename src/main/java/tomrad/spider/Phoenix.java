@@ -1,5 +1,4 @@
 package tomrad.spider;
-//!/usr/bin/env python
 
 import java.io.IOException;
 
@@ -10,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import tomrad.spider.Balance.BalanceValue;
-import tomrad.spider.Gait.TravelLength;
 import tomrad.spider.IkRoutines.CalcIkResult;
 import tomrad.spider.Servo.CheckAnglesResult;
 
@@ -128,6 +126,7 @@ public class Phoenix {
 		Eyes = false;
 
 		try {
+			
 			GPEnable = servo.InitServos(); // Tars Init Positions
 			log.info("InitServos: GPEnable={}", GPEnable);
 			singleLeg.InitSingleLeg();
@@ -141,11 +140,9 @@ public class Phoenix {
 				quit();
 			}
 
-			// SSC
-			controller.setHexOn(false);
-
 			log.debug("Entering main loop ...");
 			MainLoop();
+			
 		} catch (Exception e) {
 			log.error("Unexpected error", e);
 		}
@@ -153,19 +150,19 @@ public class Phoenix {
 	}
 
 	private void quit() {
+		System.exit(1);
 	}
 
 	// ====================================================================
 	// [MAIN]
 	void MainLoop() throws IOException {
-		// TravelLengthX = 0; // Current Travel length X
-		// TravelLengthZ = 0; // Current Travel length Z
-		// TravelRotationY = 0; // Current Travel Rotation Y
+
 		TravelLength travelLength = new TravelLength(0, 0, 0);
 
 		// main:
 		while (remainingLoops != 0) {
-			// time.sleep(0.5) // pause 1000
+			
+			//servo.pause(500); // pause 1000
 
 			// Start time
 			servo.StartTimer();
@@ -202,11 +199,7 @@ public class Phoenix {
 					checkedAngles.femurAngle, checkedAngles.tibiaAngle);
 
 			// Store previous HexOn State
-			if (controller.isHexOn()) {
-				controller.setPrevHexOn(true);
-			} else {
-				controller.setPrevHexOn(false);
-			}
+			controller.rememberHexOn();
 
 			if (remainingLoops > 0) {
 				remainingLoops -= 1;
@@ -216,23 +209,6 @@ public class Phoenix {
 
 		// dead:
 		// goto dead
-	}
-
-	// ====================================================================
-	// [ReadButtons] Reading input buttons from the ABB
-	private void ReadButtons() {
-		// input P4
-		// input P5
-		// input P6
-
-		// prev_butA = butA
-		// prev_butB = butB
-		// prev_butC = butC
-
-		// butA = IN4
-		// butB = IN5
-		// butC = IN6
-		return;
 	}
 
 	// --------------------------------------------------------------------

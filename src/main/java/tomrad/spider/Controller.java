@@ -1,7 +1,5 @@
 package tomrad.spider;
 
-import tomrad.spider.Gait.TravelLength;
-
 interface Controller {
 
 	// --------------------------------------------------------------------
@@ -13,16 +11,12 @@ interface Controller {
 	// data to the parameters.
 	TravelLength ControlInput(TravelLength input);
 
-	void setHexOn(boolean hexOn);
-
 	boolean isHexOn();
-
-	void setPrevHexOn(boolean prev_HexOn);
 
 	boolean isPrevHexOn();
 
-	void setInputTimeDelay(int inputTimeDelay);
-
 	int getInputTimeDelay();
+
+	void rememberHexOn();
 
 }
