@@ -1,5 +1,8 @@
 package tomrad.spider;
 
+import static tomrad.spider.Ps2ControllerConstants.BYTE_DELAY;
+import static tomrad.spider.Ps2ControllerConstants.CLK_DELAY;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,8 +15,8 @@ public class SpiController {
 
 	private final GpioWiring wiringPi;
 
-	private int CLK_DELAY = 4; // 4
-	private int BYTE_DELAY = 20;
+//	private int CLK_DELAY = 4; // 4
+//	private int BYTE_DELAY = 20;
 
 	// --------------------------------------------------------------------
 	// [PS2 GPIO Pins The Controller Is Connected To As Used By WirinPi]

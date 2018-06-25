@@ -101,7 +101,6 @@ public class Ps2Controller {
 	 */
 	public int initializeController() {
 
-		_readDelay = 1;
 		log.debug("initializeController: _readDelay={}", _readDelay);
 		
 		// Set command pin and clock pin high, ready to initialize a transfer.
@@ -226,11 +225,12 @@ public class Ps2Controller {
 	 */
 	private int reInitializeController(short _controllerMode) {
 
+		_readDelay = 1;
 		log.debug("reInitializeController: {}", String.format("%#02x", (byte) _controllerMode));
 		
 		this._controllerMode = _controllerMode;
 		if (_controllerMode != ANALOGMODE && _controllerMode != ALLPRESSUREMODE) {
-			log.debug("reInitializeController: illegal mode");
+			log.debug("reInitializeController: illegal mode argument");
 			return -1;
 		}
 

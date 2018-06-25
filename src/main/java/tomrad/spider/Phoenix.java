@@ -126,7 +126,7 @@ public class Phoenix {
 		Eyes = false;
 
 		try {
-			
+
 			GPEnable = servo.InitServos(); // Tars Init Positions
 			log.info("InitServos: GPEnable={}", GPEnable);
 			singleLeg.InitSingleLeg();
@@ -134,15 +134,20 @@ public class Phoenix {
 			gait.InitGait();
 
 			// Initialize Controller
-			boolean success = controller.InitController();
-			log.info("InitController: success={}", success);
+			boolean success = false;
+			int attempt = 1;
+			while (!success) {
+				success = controller.InitController();
+				log.info("InitController {}: success={}", attempt++, success);
+			}
+
 			if (!success) {
 				quit();
 			}
 
 			log.info("Entering main loop ...");
 			MainLoop();
-			
+
 		} catch (Exception e) {
 			log.error("Unexpected error", e);
 		}
@@ -161,8 +166,8 @@ public class Phoenix {
 
 		// main:
 		while (remainingLoops != 0) {
-			
-			//servo.pause(500); // pause 1000
+
+			// servo.pause(500); // pause 1000
 
 			// Start time
 			servo.StartTimer();
