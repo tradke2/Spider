@@ -94,7 +94,7 @@ public class SpiController {
 
 		for (int i = 0; i < outbytes.length; i++)
 		{
-			inbytes[i] = transmitByte_neu(outbytes[i]);
+			inbytes[i] = transmitByte(outbytes[i]);
 			wiringPi.delayMicroseconds(BYTE_DELAY);
 		}
 	
@@ -109,7 +109,7 @@ public class SpiController {
 		return inbytes;
 	}
 
-	private short transmitByte_neu(short outByte) {
+	private short transmitByte(short outByte) {
 		short inByte = 0;
 		for (int i = 0; i < 8; i++) {
 			int outBit = (outByte & 0x01);
@@ -118,10 +118,6 @@ public class SpiController {
 			outByte >>>= 1;
 		}
 		return inByte;
-	}
-
-	public void setClkPin() {
-		wiringPi.digitalWrite(_clkPin, 1); // high PS2CLK
 	}
 
 	static String byteArrayToString(short[] ba) {		

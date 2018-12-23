@@ -287,9 +287,15 @@ public class PhoenixControlPs2 implements Controller {
 				log.info("ControlInput: switched {}", HexOn ? "ON" : "OFF");
 			}
 		}
-
+		
 		log.trace("ControlInput: HexOn={}", HexOn);
-
+		
+		// return if PS2-Contrroller is not in desired mode
+		if (ps2Data[1] != Ps2ControllerConstants.ANALOGMODE)
+		{
+			return newTravelLength;
+		}
+		
 		if (HexOn) {
 			// [SWITCH MODES]
 

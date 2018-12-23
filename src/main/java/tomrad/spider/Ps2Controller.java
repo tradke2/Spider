@@ -8,7 +8,6 @@ import static tomrad.spider.Ps2ControllerConstants.MAX_READ_DELAY;
 import static tomrad.spider.Ps2ControllerConstants.enterConfigMode;
 import static tomrad.spider.Ps2ControllerConstants.exitConfigAllPressureMode;
 import static tomrad.spider.Ps2ControllerConstants.exitConfigMode;
-import static tomrad.spider.Ps2ControllerConstants.exitConfigMode2;
 import static tomrad.spider.Ps2ControllerConstants.setAllPressureMode;
 import static tomrad.spider.Ps2ControllerConstants.setModeAnalogLockMode;
 
@@ -26,7 +25,7 @@ public class Ps2Controller {
 	int _commandPin = -1;
 	int _attnPin = -1;
 	int _clkPin = -1;
-	int _readDelay = 0;
+	int _readDelay = 1;
 	private int[] _btnLastState = new int[2];
 	private int[] _btnChangedState = new int[2];
 	private short[] PS2data = new short[21];
@@ -70,10 +69,10 @@ public class Ps2Controller {
 	 * @return 1 - Config success. 0 - Controller is not responding.
 	 */
 	public void setupPins(int _commandPin, int _dataPin, int _clkPin, int _attnPin) {
-		
+
 		log.debug("setupPins: _commandPin={}, _dataPin={}, _clkPin={}, _attnPin={}", _commandPin, _dataPin, _clkPin,
 				_attnPin);
-		
+
 		// INITIALIZE I/O
 		this._commandPin = _commandPin;
 		this._clkPin = _clkPin;
@@ -83,6 +82,7 @@ public class Ps2Controller {
 		spiController.setupPins(_commandPin, _dataPin, _clkPin, _attnPin);
 
 		_controllerMode = ANALOGMODE;
+		_readDelay = 1;
 
 		log.debug("setupPins: _controllerMode={}", String.format("%#02x", (byte) _controllerMode));
 	}
@@ -102,7 +102,7 @@ public class Ps2Controller {
 	public int initializeController() {
 
 		log.debug("initializeController: _readDelay={}", _readDelay);
-		
+
 		// Set command pin and clock pin high, ready to initialize a transfer.
 		_wiringPi.digitalWrite(_commandPin, 1);
 		_wiringPi.digitalWrite(_clkPin, 1);
@@ -113,7 +113,7 @@ public class Ps2Controller {
 
 		// Initialize the read delay to be 1 millisecond.
 		// Increment read_delay until controller accepts commands.
-		// This is a but of dynamic debugging. Read delay usually needs to be about 2.
+		// This is a bit of dynamic debugging. Read delay usually needs to be about 2.
 		// But for some controllers, especially wireless ones it needs to be a bit
 		// higher.
 
@@ -127,7 +127,8 @@ public class Ps2Controller {
 			spiController.transmitBytes(setModeAnalogLockMode);
 
 			// Return all pressures
-			// self.transmitBytes(setAllPressureMode)
+			// spiController.transmitBytes(setAllPressureMode);
+			// spiController.transmitBytes(exitConfigAllPressureMode);
 
 			// Exit config mode.
 			spiController.transmitBytes(exitConfigMode);
@@ -225,9 +226,8 @@ public class Ps2Controller {
 	 */
 	private int reInitializeController(short _controllerMode) {
 
-		_readDelay = 1;
 		log.debug("reInitializeController: {}", String.format("%#02x", (byte) _controllerMode));
-		
+
 		this._controllerMode = _controllerMode;
 		if (_controllerMode != ANALOGMODE && _controllerMode != ALLPRESSUREMODE) {
 			log.debug("reInitializeController: illegal mode argument");
@@ -242,7 +242,7 @@ public class Ps2Controller {
 				spiController.transmitBytes(setAllPressureMode);
 				spiController.transmitBytes(exitConfigAllPressureMode);
 			}
-			spiController.transmitBytes(exitConfigMode2);
+			spiController.transmitBytes(exitConfigMode);
 			readPS2();
 			if (PS2data[1] == _controllerMode) {
 				log.debug("reInitializeController: success");

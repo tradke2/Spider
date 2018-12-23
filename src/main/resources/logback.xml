@@ -6,4 +6,5 @@
     <logger name="tomrad.spider.Trig" level="INFO"/>
     <logger name="tomrad.spider.PhoenixControlPs2" level="INFO"/>
     <logger name="tomrad.spider.Servo" level="INFO"/>
+    <logger name="tomrad.spider.SpiController" level="INFO"/>
 </configuration>
