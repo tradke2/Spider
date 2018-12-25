@@ -145,13 +145,9 @@ public class Phoenix {
 				quit();
 			}
 
-			log.info("Entering main loop ...");
-			MainLoop();
-
 		} catch (Exception e) {
 			log.error("Unexpected error", e);
 		}
-		return;
 	}
 
 	private void quit() {
@@ -165,6 +161,7 @@ public class Phoenix {
 		TravelLength travelLength = new TravelLength(0, 0, 0);
 
 		// main:
+		log.info("Entering main loop ...");
 		while (remainingLoops != 0) {
 
 			// servo.pause(500); // pause 1000
@@ -195,13 +192,11 @@ public class Phoenix {
 			CalcIkResult ikResult = ikRoutines.CalcIK(balanceValue);
 
 			// Check mechanical limits
-			CheckAnglesResult checkedAngles = servo.CheckAngles(ikResult.coxaAngle, ikResult.femurAngle,
-					ikResult.tibiaAngle);
+			CheckAnglesResult checkedAngles = servo.CheckAngles(ikResult);
 
 			// Drive Servos
 			Eyes = servo.ServoDriverMain(Eyes, controller.isHexOn(), controller.isPrevHexOn(),
-					controller.getInputTimeDelay(), SpeedControl, travelLength, checkedAngles.coxaAngle,
-					checkedAngles.femurAngle, checkedAngles.tibiaAngle);
+					controller.getInputTimeDelay(), SpeedControl, travelLength, checkedAngles);
 
 			// Store previous HexOn State
 			controller.rememberHexOn();
@@ -239,6 +234,10 @@ public class Phoenix {
 	// --------------------------------------------------------------------
 	// [Entry point]
 	public void run() {
-		Init();
+		try {
+			MainLoop();
+		} catch (IOException e) {
+			log.error("Unexpected error", e);
+		}
 	}
 }

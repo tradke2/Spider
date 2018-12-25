@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Scope;
 
@@ -30,7 +31,9 @@ public class DemoApplication {
 	private Gait gait; 
 	
 	public static void main(String[] args) {
-		SpringApplication.run(DemoApplication.class, args);
+		ApplicationContext ctx = SpringApplication.run(DemoApplication.class, args);
+		Phoenix phoenix = ctx.getBean(Phoenix.class);
+		phoenix.run();
 	}
 	
 	@PostConstruct

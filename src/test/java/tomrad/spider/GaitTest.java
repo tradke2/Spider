@@ -14,13 +14,10 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 import org.mockito.internal.util.reflection.Whitebox;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest
+@RunWith(MockitoJUnitRunner.class)
 public class GaitTest {
 
 	@Mock
@@ -28,7 +25,6 @@ public class GaitTest {
 	
 	@InjectMocks
 	@Spy
-	@Autowired
 	private Gait testee;
 
 	private final int[] gait0LegNr = new int[] {4, 6, 2, 1, 3, 5};
@@ -43,6 +39,7 @@ public class GaitTest {
 	@Before
 	public void setUp() {
 		MockitoAnnotations.initMocks(this);
+		testee.InitGait();
 		for (int i = 0; i < 6; i++)
 		{
 			IkRoutines.GaitPosX[i] = 0;
@@ -54,6 +51,7 @@ public class GaitTest {
 
 	@Test
 	public void testInitGait() {
+		Mockito.reset(testee);
 		testee.InitGait();
 		assertEquals(0, Whitebox.getInternalState(testee, "GaitType"));
 		assertEquals(30.0, Whitebox.getInternalState(testee, "LegLiftHeight"));
@@ -186,11 +184,11 @@ public class GaitTest {
 	public void testGaitSeq_motionInputTooSmall_returnsNull() {
 		for (int i = 0; i < 8; i++)
 		{
-			for (int lengthX : new int[] { -4, 4})
+			for (double lengthX : new double[] { -3.99, 3.99})
 			{
-				for (int lengthZ : new int[] { -4, 4})
+				for (double lengthZ : new double[] { -3.99, 3.99})
 				{
-					for (int rotY : new int[] { -4, 4})
+					for (double rotY : new double[] { -1.99, 1.99})
 					{
 						testee.GaitSelect(i);
 						TravelLength result = testee.GaitSeq(new TravelLength(lengthX, lengthZ, rotY));

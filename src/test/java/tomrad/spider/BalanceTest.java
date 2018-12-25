@@ -9,25 +9,31 @@ import static tomrad.spider.IkRoutines.cInitPosY;
 import static tomrad.spider.IkRoutines.cInitPosZ;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.mockito.runners.MockitoJUnitRunner;
+import org.slf4j.Logger;
 
 import tomrad.spider.Balance.BalanceValue;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest
+@RunWith(MockitoJUnitRunner.class)
 public class BalanceTest {
+
+	private static final double EPSIOLON = 0.0005;
+
+	@Mock
+	private Logger logger;
+
+	@Spy
+	@InjectMocks
+	private Trig trig;
 
 	@InjectMocks
 	@Spy
-	@Autowired
 	private Balance testee;
 	
 	@Before
@@ -47,44 +53,41 @@ public class BalanceTest {
 	}
 
 	@Test
-	@Ignore
 	public void testCalcBalance_legPosZeroGaitPosZero_returnsZero() {
 		IkRoutines.LegPosX = new double[] { 0, 0, 0, 0, 0, 0 };
 		IkRoutines.LegPosY = new double[] { 0, 0, 0, 0, 0, 0 };
 		IkRoutines.LegPosZ = new double[] { 0, 0, 0, 0, 0, 0 };
 		BalanceValue result = testee.CalcBalance();
-		assertEquals(0.0, result.totalTransX, 0);
-		assertEquals(-80, result.totalTransY, 0);
-		assertEquals(0.0, result.totalTransZ, 0);
-		assertEquals(-90, result.totalXBal, 0);
-		assertEquals(0.0, result.totalYBal, 0);
-		assertEquals(90, result.totalZBal, 0);
+		assertEquals(0.0, result.totalTransX, EPSIOLON);
+		assertEquals(-80, result.totalTransY,EPSIOLON);
+		assertEquals(0.0, result.totalTransZ, EPSIOLON);
+		assertEquals(0.0, result.totalXBal, EPSIOLON);
+		assertEquals(-30, result.totalYBal, EPSIOLON);
+		assertEquals(0.0, result.totalZBal, EPSIOLON);
 	}
 
 	@Test
-	@Ignore
 	public void testCalcBalance_legPosInitialStateGaitPosZero_returnsZero() {
 		BalanceValue result = testee.CalcBalance();
-		assertEquals(0.0, result.totalTransX, 0);
-		assertEquals(0.0, result.totalTransY, 0);
-		assertEquals(0.0, result.totalTransZ, 0);
-		assertEquals(-90.0, result.totalXBal, 0);
-		assertEquals(0.0, result.totalYBal, 0.001);
-		assertEquals(90.0, result.totalZBal, 0);
+		assertEquals(0.0, result.totalTransX, EPSIOLON);
+		assertEquals(0.0, result.totalTransY, EPSIOLON);
+		assertEquals(0.0, result.totalTransZ, EPSIOLON);
+		assertEquals(0.0, result.totalXBal, EPSIOLON);
+		assertEquals(-30.0, result.totalYBal, EPSIOLON);
+		assertEquals(0.0, result.totalZBal, EPSIOLON);
 	}
 
 	@Test
-	@Ignore
 	public void testCalcBalance_legPosSet_GaitPosZero_balanceModeOn_returnsLegPos() {
 		IkRoutines.LegPosX = new double[] {10, 10, 10, 10, 10, 10};
 		IkRoutines.LegPosY = new double[] {20, 20, 20, 20, 20, 20};
 		IkRoutines.LegPosZ = new double[] {40, 40, 40, 40, 40, 40};
 		BalanceValue result = testee.CalcBalance();
-		assertEquals(0.0, result.totalTransX, 0);
-		assertEquals(-60.0, result.totalTransY, 0);
-		assertEquals(40.0, result.totalTransZ, 0);
-		assertEquals(-75.61, result.totalXBal, 0.01);
-		assertEquals(0.0, result.totalYBal, 0.01);
-		assertEquals(90.0, result.totalZBal, 0);
+		assertEquals(0.0, result.totalTransX, EPSIOLON);
+		assertEquals(-60.0, result.totalTransY, EPSIOLON);
+		assertEquals(40.0, result.totalTransZ, EPSIOLON);
+		assertEquals(-14.3916, result.totalXBal, EPSIOLON);
+		assertEquals(-30.0, result.totalYBal, EPSIOLON);
+		assertEquals(0.0, result.totalZBal, EPSIOLON);
 	}
 }

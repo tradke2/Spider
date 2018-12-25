@@ -9,15 +9,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import tomrad.spider.Trig.SinCos;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest
+@RunWith(MockitoJUnitRunner.class)
 public class TrigTest {
 
 	@Mock
@@ -25,7 +22,6 @@ public class TrigTest {
 
 	@InjectMocks
 	@Spy
-	@Autowired
 	private Trig testee;
 
 	@Before

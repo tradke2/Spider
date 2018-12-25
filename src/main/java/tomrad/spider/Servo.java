@@ -83,6 +83,8 @@ import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import tomrad.spider.IkRoutines.CalcIkResult;
+
 @Component
 public class Servo {
 
@@ -154,7 +156,7 @@ public class Servo {
 
 	// --------------------------------------------------------------------
 	// [CHECK ANGLES] Checks the mechanical limits of the servos
-	public CheckAnglesResult CheckAngles(int[] coxaAngle, int[] femurAngle, int[] tibiaAngle) {
+	public CheckAnglesResult CheckAngles(CalcIkResult ikResult) {
 		log.trace("CheckAngles: cCoxaMin={}", Arrays.toString(cCoxaMin));
 		log.trace("CheckAngles: cCoxaMax={}", Arrays.toString(cCoxaMax));
 		log.trace("CheckAngles: cFemurMin={}", Arrays.toString(cFemurMin));
@@ -163,22 +165,22 @@ public class Servo {
 		log.trace("CheckAngles: cTibiaMax={}", Arrays.toString(cTibiaMax));
 
 		for (int LegIndex = 0; LegIndex < 6; LegIndex++) {
-			coxaAngle[LegIndex] = Math.min(Math.max(coxaAngle[LegIndex], cCoxaMin[LegIndex]), cCoxaMax[LegIndex]);
-			femurAngle[LegIndex] = Math.min(Math.max(femurAngle[LegIndex], cFemurMin[LegIndex]), cFemurMax[LegIndex]);
-			tibiaAngle[LegIndex] = Math.min(Math.max(tibiaAngle[LegIndex], cTibiaMin[LegIndex]), cTibiaMax[LegIndex]);
+			ikResult.coxaAngle[LegIndex] = Math.min(Math.max(ikResult.coxaAngle[LegIndex], cCoxaMin[LegIndex]), cCoxaMax[LegIndex]);
+			ikResult.femurAngle[LegIndex] = Math.min(Math.max(ikResult.femurAngle[LegIndex], cFemurMin[LegIndex]), cFemurMax[LegIndex]);
+			ikResult.tibiaAngle[LegIndex] = Math.min(Math.max(ikResult.tibiaAngle[LegIndex], cTibiaMin[LegIndex]), cTibiaMax[LegIndex]);
 		}
 
-		log.trace("CheckAngles: CoxaAngle={}", Arrays.toString(coxaAngle));
-		log.trace("CheckAngles: FemurAngle={}", Arrays.toString(femurAngle));
-		log.trace("CheckAngles: TibiaAngle={}", Arrays.toString(tibiaAngle));
+		log.trace("CheckAngles: CoxaAngle={}", Arrays.toString(ikResult.coxaAngle));
+		log.trace("CheckAngles: FemurAngle={}", Arrays.toString(ikResult.femurAngle));
+		log.trace("CheckAngles: TibiaAngle={}", Arrays.toString(ikResult.tibiaAngle));
 
-		return new CheckAnglesResult(coxaAngle, femurAngle, tibiaAngle);
+		return new CheckAnglesResult(ikResult.coxaAngle, ikResult.femurAngle, ikResult.tibiaAngle);
 	}
 
 	// --------------------------------------------------------------------
 	// [SERVO DRIVER MAIN] Updates the positions of the servos
 	public boolean ServoDriverMain(boolean Eyes, boolean HexOn, boolean Prev_HexOn, int InputTimeDelay,
-			int SpeedControl, TravelLength travelLength, int[] coxaAngle, int[] femurAngle, int[] tibiaAngle)
+			int SpeedControl, TravelLength travelLength, CheckAnglesResult checkedAngels)
 			throws IOException {
 		log.debug("ServoDriveMain: HexOn={}, Prev_HexOn={}\n", HexOn, Prev_HexOn);
 
@@ -228,7 +230,7 @@ public class Servo {
 				pause((int) Math.max((PrevSSCTime - CycleTime - 45), 1));
 			}
 			pause(100);	// quickfix: verhindert spastische Zuckungen wenn nicht "InMotion"
-			PrevSSCTime = ServoDriver(SSCTime, coxaAngle, femurAngle, tibiaAngle);
+			PrevSSCTime = ServoDriver(SSCTime, checkedAngels.coxaAngle, checkedAngels.femurAngle, checkedAngels.tibiaAngle);
 		} else {
 			log.debug("ServoDriverMain: switched off");
 
@@ -236,7 +238,7 @@ public class Servo {
 			if (Prev_HexOn) {
 				if (!AllDown) {
 					SSCTime = 600;
-					PrevSSCTime = ServoDriver(SSCTime, coxaAngle, femurAngle, tibiaAngle);
+					PrevSSCTime = ServoDriver(SSCTime, checkedAngels.coxaAngle, checkedAngels.femurAngle, checkedAngels.tibiaAngle);
 					sound(new int[][] { { 100, 5000 }, { 80, 4500 }, { 60, 4000 } });
 					pause(600);
 				} else {
