@@ -65,7 +65,7 @@ public class IkRoutinesTest {
 	}
 
 	@Test
-	@Ignore
+	@Ignore //TODO: funktioniert nicht wenn von maven ausgeführt
 	public void testCalcIK_() {
 		//	                                 cRR,    cRM,    cRF,    cLR,    cLM,    cLF
 		IkRoutines.LegPosX = new double[] {  43.00,  86.00,  43.00,  43.00,  86.00,  43.00 };
