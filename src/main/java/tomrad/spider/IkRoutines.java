@@ -41,10 +41,6 @@ import static tomrad.spider.Config_Ch3.cRROffsetZ;
 import static tomrad.spider.Config_Ch3.cTibiaLength;
 
 import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.DoubleStream;
-import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -268,15 +264,15 @@ public class IkRoutines {
 		logger.debug("LegIK: IKFeetPosX={}, IKFeetPosY={}, IKFeetPosZ={}", IKFeetPosX, IKFeetPosY, IKFeetPosZ);
 
 		// Length between the Coxa and Feet
-		double IKFeetPosXZ = Math.sqrt((IKFeetPosX * IKFeetPosX) + (IKFeetPosZ * IKFeetPosZ));
+		double IKFeetPosXZ = Math.sqrt(IKFeetPosX * IKFeetPosX + IKFeetPosZ * IKFeetPosZ) - cCoxaLength;
 		logger.trace("LegIK: IKFeetPosXZ={}", IKFeetPosXZ);
 
 		// IKSW - Length between shoulder and wrist
-		double IKSW = Math.sqrt((IKFeetPosXZ - cCoxaLength) * (IKFeetPosXZ - cCoxaLength) + (IKFeetPosY * IKFeetPosY));
+		double IKSW = Math.sqrt(IKFeetPosXZ * IKFeetPosXZ + IKFeetPosY * IKFeetPosY);
 		logger.trace("LegIK: IKSW={}", IKSW);
 
 		// IKA1 - Angle between SW line and the ground in rad
-		double IKA1 = trig.getBoogTan(IKFeetPosXZ - cCoxaLength, IKFeetPosY);
+		double IKA1 = trig.getBoogTan(IKFeetPosXZ, IKFeetPosY);
 		logger.trace("LegIK: IKA1={}", IKA1);
 
 		// IKA2 - Angle of the line S>W with respect to the femur in radians
@@ -312,6 +308,7 @@ public class IkRoutines {
 		if (Double.isNaN(coxaAngle) || Double.isNaN(femurAngle) || Double.isNaN(tibiaAngle)) {
 			IKSolution = false;
 			IKSolutionError = true;
+			logger.error("IKSolutionError: CoxaAngle={}, FemurAngle={}, TibiaAngle={}", coxaAngle, femurAngle, tibiaAngle);
 		} else {
 			IKSolution = true;
 			IKSolutionError = false;
@@ -420,14 +417,14 @@ public class IkRoutines {
 		return new CalcIkResult(ikSolution, ikSolutionWarning, ikSolutionError, CoxaAngle, FemurAngle, TibiaAngle);
 	}
 
-	private String[] round(double[] input) {
-		DoubleStream of = Arrays.stream(input);
-		Stream<String> s = of.mapToObj(d -> {
-			return String.format("%.2f", d);
-		});
-		List<String> x = s.collect(Collectors.toList());
-		return x.toArray(new String[0]);
-	}
+//	private String[] round(double[] input) {
+//		DoubleStream of = Arrays.stream(input);
+//		Stream<String> s = of.mapToObj(d -> {
+//			return String.format("%.2f", d);
+//		});
+//		List<String> x = s.collect(Collectors.toList());
+//		return x.toArray(new String[0]);
+//	}
 
 	// --------------------------------------------------------------------
 	// [INIT INVERSE KINEMATICS] Sets body position and rotation to 0
