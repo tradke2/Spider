@@ -19,7 +19,7 @@ public class Ps2ControllerConstants {
 //	    return x ^ (1<<y) 	// Toggle bit y in x
 
 	// Delays
-	public static final int CLK_DELAY       = 3;	// determines the clk rate (microseconds per half cycle)
+	public static final int CLK_DELAY       = 4;	// determines the clk rate (microseconds per half cycle)
 	public static final int BYTE_DELAY      = 20;	// pause between bytes in microseconds
 	public static final int MAX_READ_DELAY  = 50;	// max value for delay between successive reads in microseconds
 

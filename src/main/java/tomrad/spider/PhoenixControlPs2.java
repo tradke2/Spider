@@ -155,15 +155,15 @@ public class PhoenixControlPs2 implements Controller {
 	private int GPPlayerMode = 4;
 	// --------------------------------------------------------------------
 	// [PS2 WiringPi Pins The Controller Is Connected To]
-	static int PS2DAT = 13; // PS2 Controller DAT (Brown)  Header 21
-	static int PS2CMD = 12; // PS2 controller CMD (Orange) Header 19
-	static int PS2SEL = 10; // PS2 Controller SEL (Blue)   Header 24
-	static int PS2CLK = 14; // PS2 Controller CLK (White)  Header 23
+//	static int PS2DAT = 13; // PS2 Controller DAT (Brown)  Header 21
+//	static int PS2CMD = 12; // PS2 controller CMD (Orange) Header 19
+//	static int PS2SEL = 10; // PS2 Controller SEL (Blue)   Header 24
+//	static int PS2CLK = 14; // PS2 Controller CLK (White)  Header 23
 	
-//	static int PS2DAT = 31; // PS2 Controller DAT (Brown)
-//	static int PS2CMD = 11; // PS2 controller CMD (Orange)
-//	static int PS2SEL = 10; // PS2 Controller SEL (Blue)
-//	static int PS2CLK =  6; // PS2 Controller CLK (White)
+	static int PS2DAT = 31; // PS2 Controller DAT (Brown)  Header 28
+	static int PS2CMD = 11; // PS2 controller CMD (Orange) Header 26
+	static int PS2SEL = 10; // PS2 Controller SEL (Blue)   Header 24
+	static int PS2CLK =  6; // PS2 Controller CLK (White)  Header 22
 	
 	// --------------------------------------------------------------------
 	// [Ps2 Controller Variables]
@@ -214,7 +214,7 @@ public class PhoenixControlPs2 implements Controller {
 		ps2Controller.setupPins(PS2CMD, PS2DAT, PS2CLK, PS2SEL);
 
 		log.debug("InitController: trying to set mode");
-		if (ps2Controller.initializeController() != 1) {
+		if (ps2Controller.initializeAnalogMode() != 1) {
 			log.debug("InitController: failed to set mode");
 			return false;
 		}

@@ -1,15 +1,7 @@
 package tomrad.spider;
 
-import static tomrad.spider.Ps2ControllerConstants.ALLPRESSUREMODE;
 import static tomrad.spider.Ps2ControllerConstants.ANALOGMODE;
 import static tomrad.spider.Ps2ControllerConstants.BYTE_DELAY;
-import static tomrad.spider.Ps2ControllerConstants.MAX_INIT_ATTEMPT;
-import static tomrad.spider.Ps2ControllerConstants.MAX_READ_DELAY;
-import static tomrad.spider.Ps2ControllerConstants.enterConfigMode;
-import static tomrad.spider.Ps2ControllerConstants.exitConfigAllPressureMode;
-import static tomrad.spider.Ps2ControllerConstants.exitConfigMode;
-import static tomrad.spider.Ps2ControllerConstants.setAllPressureMode;
-import static tomrad.spider.Ps2ControllerConstants.setModeAnalogLockMode;
 
 import java.util.Arrays;
 
@@ -19,13 +11,13 @@ import org.slf4j.LoggerFactory;
 public class Ps2Controller {
 
 	private final static Logger log = LoggerFactory.getLogger(Ps2Controller.class);
+	private final static int _readDelay = 1;
 
 	// private members:
 	private short _controllerMode = -1;
 	int _commandPin = -1;
 	int _attnPin = -1;
 	int _clkPin = -1;
-	int _readDelay = 1;
 	private int[] _btnLastState = new int[2];
 	private int[] _btnChangedState = new int[2];
 	private short[] PS2data = new short[21];
@@ -82,13 +74,12 @@ public class Ps2Controller {
 		spiController.setupPins(_commandPin, _dataPin, _clkPin, _attnPin);
 
 		_controllerMode = ANALOGMODE;
-		_readDelay = 1;
 
 		log.debug("setupPins: _controllerMode={}", String.format("%#02x", (byte) _controllerMode));
 	}
 
 	/**
-	 * Initializes the I/O pins and sets up the controller for the desired mode.
+	 * Initializes the I/O pins and sets up the controller for the analog mode.
 	 * <br>
 	 * --!! NOTE !!-- {@link #setupPins(int, int, int, int)} must be called first to
 	 * set the pins for the SPI protocol..
@@ -99,60 +90,71 @@ public class Ps2Controller {
 	 * digital mode or analog mode with all pressures then use reInitController()
 	 * </p>
 	 */
-	public int initializeController() {
+	public int initializeAnalogMode() {
+		
+		log.debug("initializeAnalog");
+		
+		short chk_ana = 0;
+		int cnt = 0;
+		
+		while(chk_ana != 0x73)
+		{
+			// put controller in config mode
+			_wiringPi.digitalWrite(_commandPin, 1);
+			_wiringPi.digitalWrite(_clkPin, 1);
+			_wiringPi.digitalWrite(_attnPin, 0);
 
-		log.debug("initializeController: _readDelay={}", _readDelay);
+			spiController.transmitBytes(new short[] {0x01, 0x43, 0x00, 0x01, 0x00});
+	           
+			_wiringPi.digitalWrite(_commandPin, 1);
+			_wiringPi.delay(1);
+			_wiringPi.digitalWrite(_attnPin, 1);
+	           
+			_wiringPi.delay(10);
+	          
+			// put controller in analouge mode
+			_wiringPi.digitalWrite(_commandPin, 1);
+			_wiringPi.digitalWrite(_clkPin, 1);
+			_wiringPi.digitalWrite(_attnPin, 0);
+	         
+			spiController.transmitBytes(new short[] {0x01, 0x44, 0x00, 0x01, 0x03, 0x00, 0x00, 0x00, 0x00});
+	          
+			_wiringPi.digitalWrite(_commandPin, 1);
+			_wiringPi.delay(1);
+			_wiringPi.digitalWrite(_attnPin, 1);
+	          
+			_wiringPi.delay(10);
+	         
+			// exit config mode
+			_wiringPi.digitalWrite(_commandPin, 1);
+			_wiringPi.digitalWrite(_clkPin, 1);
+			_wiringPi.digitalWrite(_attnPin, 0);
+	          
+			spiController.transmitBytes(new short[] {0x01, 0x43, 0x00, 0x00, 0x5A, 0x5A, 0x5A, 0x5A, 0x5A});
+	            
+			_wiringPi.digitalWrite(_commandPin, 1);
+			_wiringPi.delay(1);
+			_wiringPi.digitalWrite(_attnPin, 1);
+	          
+			_wiringPi.delay(10);
+	         
+  		    // poll controller and check in analouge mode.
+			_wiringPi.digitalWrite(_commandPin, 1);
+			_wiringPi.digitalWrite(_clkPin, 1);
+			_wiringPi.digitalWrite(_attnPin, 0);
+	          	          
+			chk_ana = spiController.transmitBytes(new short[] {0x01, 0x42, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00})[1];
 
-		// Set command pin and clock pin high, ready to initialize a transfer.
-		_wiringPi.digitalWrite(_commandPin, 1);
-		_wiringPi.digitalWrite(_clkPin, 1);
-
-		// Read controller a few times to check if it is talking.
-		readPS2();
-		readPS2();
-
-		// Initialize the read delay to be 1 millisecond.
-		// Increment read_delay until controller accepts commands.
-		// This is a bit of dynamic debugging. Read delay usually needs to be about 2.
-		// But for some controllers, especially wireless ones it needs to be a bit
-		// higher.
-
-		// Try up until readDelay = MAX_READ_DELAY
-		while (true) {
-
-			// Transmit the enter config command.
-			spiController.transmitBytes(enterConfigMode);
-
-			// Set mode to analog mode and lock it there.
-			spiController.transmitBytes(setModeAnalogLockMode);
-
-			// Return all pressures
-			// spiController.transmitBytes(setAllPressureMode);
-			// spiController.transmitBytes(exitConfigAllPressureMode);
-
-			// Exit config mode.
-			spiController.transmitBytes(exitConfigMode);
-
-			// Attempt to read the controller.
-			readPS2();
-
-			// If read was successful (controller indicates it is in analog mode), break
-			// this config loop.
-			if (PS2data[1] == _controllerMode) {
-				break;
-			}
-
-			// If we have tried and failed 10 times. call it quits,
-			if (_readDelay == MAX_READ_DELAY) {
-				log.debug("initializeController: failed");
-				return 0;
-			}
-
-			// Otherwise increment the read delay and go for another loop
-			_readDelay = _readDelay + 1;
-			log.debug("initializeController: _readDelay={}", _readDelay);
-		}
-
+			_wiringPi.digitalWrite(_commandPin, 1);
+			_wiringPi.delay(1);
+			_wiringPi.digitalWrite(_attnPin, 1);
+	          
+			_wiringPi.delay(10);
+	         
+		  // keep increasing counter to be dispalyed untill PSx controller confirms it's in analouge mode.
+		 log.debug("cnt={}",cnt++);                     
+	   }
+		
 		log.debug("initializeController: success");
 		return 1;
 	}
@@ -171,7 +173,7 @@ public class Ps2Controller {
 		{
 			log.debug("waited too long");
 			_last_read = _wiringPi.millis(); // break endless recursion via reInitialize()
-			reInitializeController(_controllerMode);
+			initializeAnalogMode();
 		}
 
 		if (timeSince < _readDelay) // waited too short
@@ -209,50 +211,6 @@ public class Ps2Controller {
 		_btnLastState[1] = PS2data[4];
 
 		return Arrays.copyOf(PS2data, PS2data.length);
-	}
-
-	/**
-	 * Re-Initializes the I/O pins and sets up the controller for the desired mode.
-	 * <br>
-	 * TODO: <br>
-	 * Currently this function is only coded for either analog mode without all
-	 * pressures returned or analog mode with all pressures. Need to implement
-	 * digital.
-	 * 
-	 * @param The
-	 *            desired controller mode.
-	 * @return 1 - Success! -1 - Invalid mode! -2 - Failed to get controller into
-	 *         desired mode in less than MAX_INIT_ATTEMPT attempts
-	 */
-	private int reInitializeController(short _controllerMode) {
-
-		log.debug("reInitializeController: {}", String.format("%#02x", (byte) _controllerMode));
-
-		this._controllerMode = _controllerMode;
-		if (_controllerMode != ANALOGMODE && _controllerMode != ALLPRESSUREMODE) {
-			log.debug("reInitializeController: illegal mode argument");
-			return -1;
-		}
-
-		for (int initAttempts = 1; initAttempts < MAX_INIT_ATTEMPT; initAttempts++) {
-			log.debug("attempt #{}", initAttempts);
-			spiController.transmitBytes(enterConfigMode);
-			spiController.transmitBytes(setModeAnalogLockMode);
-			if (_controllerMode == ALLPRESSUREMODE) {
-				spiController.transmitBytes(setAllPressureMode);
-				spiController.transmitBytes(exitConfigAllPressureMode);
-			}
-			spiController.transmitBytes(exitConfigMode);
-			readPS2();
-			if (PS2data[1] == _controllerMode) {
-				log.debug("reInitializeController: success");
-				return 1;
-			}
-			_wiringPi.delay(_readDelay);
-		}
-
-		log.debug("reInitializeController: timeout");
-		return -2;
 	}
 
 	/**
