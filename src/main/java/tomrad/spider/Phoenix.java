@@ -164,47 +164,54 @@ public class Phoenix {
 		log.info("Entering main loop ...");
 		while (remainingLoops != 0) {
 
-			// servo.pause(500); // pause 1000
+			try {
 
-			// Start time
-			servo.StartTimer();
-
-			travelLength = controller.ControlInput(travelLength); // Read input
-
-			// ReadButtons() // I/O used by the remote
-			WriteOutputs(); // Write Outputs
-
-			// GP Player
-			if (GPEnable) {
-				servo.GPPlayer(GPStart, GPSeq);
+				// servo.pause(500); // pause 1000
+	
+				// Start time
+				servo.StartTimer();
+	
+				travelLength = controller.ControlInput(travelLength); // Read input
+	
+				// ReadButtons() // I/O used by the remote
+				WriteOutputs(); // Write Outputs
+	
+				// GP Player
+				if (GPEnable) {
+					servo.GPPlayer(GPStart, GPSeq);
+				}
+	
+				// Single leg control
+				singleLeg.SingleLegControl();
+	
+				// Gait
+				travelLength = gait.GaitSeq(travelLength);
+	
+				// Balance calculations
+				BalanceValue balanceValue = balance.CalcBalance();
+	
+				// calculate inverse kinematic
+				CalcIkResult ikResult = ikRoutines.CalcIK(balanceValue);
+	
+				// Check mechanical limits
+				CheckAnglesResult checkedAngles = servo.CheckAngles(ikResult);
+	
+				// Drive Servos
+				Eyes = servo.ServoDriverMain(Eyes, controller.isHexOn(), controller.isPrevHexOn(),
+						controller.getInputTimeDelay(), SpeedControl, travelLength, checkedAngles);
+	
+				// Store previous HexOn State
+				controller.rememberHexOn();
+	
+				if (remainingLoops > 0) {
+					remainingLoops -= 1;
+				}
+				// goto main
+			
+			} catch (IKSolutionError e) {
+				log.error(e.getMessage());
 			}
 
-			// Single leg control
-			singleLeg.SingleLegControl();
-
-			// Gait
-			travelLength = gait.GaitSeq(travelLength);
-
-			// Balance calculations
-			BalanceValue balanceValue = balance.CalcBalance();
-
-			// calculate inverse kinematic
-			CalcIkResult ikResult = ikRoutines.CalcIK(balanceValue);
-
-			// Check mechanical limits
-			CheckAnglesResult checkedAngles = servo.CheckAngles(ikResult);
-
-			// Drive Servos
-			Eyes = servo.ServoDriverMain(Eyes, controller.isHexOn(), controller.isPrevHexOn(),
-					controller.getInputTimeDelay(), SpeedControl, travelLength, checkedAngles);
-
-			// Store previous HexOn State
-			controller.rememberHexOn();
-
-			if (remainingLoops > 0) {
-				remainingLoops -= 1;
-			}
-			// goto main
 		}
 
 		// dead:
