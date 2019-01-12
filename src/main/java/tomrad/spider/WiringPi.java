@@ -191,28 +191,31 @@ public class WiringPi implements GpioWiring {
 	public void serialOpen(String device, int baud) throws IOException {
 		checkState();
 		serial.open(device, baud);
+		log.debug("Serial device {} opened with {} baud.", device, baud);
 	}
 
 	@Override
 	public void serialFlush() throws IOException {
 		checkState();
 		serial.flush();
+		log.debug("Serial device flushed.");
 	}
 
 	@Override
 	public void serialWrite(Charset charset, String data) throws IOException {
 		checkState();
 		serial.write(charset, data);
+		log.debug("Serial device written.");
 	}
 
 	@Override
 	public void serialClose() throws IOException {
 		checkState();
 		serial.close();
+		log.debug("Serial device closed.");
 	}
 
-	@Override
-	public String serialReadUntil(char endOfLine) throws IOException {
+	private String serialReadUntil(char endOfLine) throws IOException {
 		checkState();
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		InputStream is = serial.getInputStream();
@@ -232,6 +235,13 @@ public class WiringPi implements GpioWiring {
 		for (int i = 0; i < inputData.length; i++) {
 			inputData[i] = inBytes[i] & 0xff;
 		}
+	}
+
+	@Override
+	public String serialReadln() throws IOException {
+		String result = serialReadUntil(CR);
+		log.debug("Serial device read: \"{}\"", result);
+		return result;
 	}
 
 }

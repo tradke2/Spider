@@ -88,8 +88,6 @@ import tomrad.spider.IkRoutines.CalcIkResult;
 @Component
 public class Servo {
 
-	private static final char CR = 13;
-
 	@Autowired
 	private Logger log;
 
@@ -281,12 +279,13 @@ public class Servo {
 
 	// --------------------------------------------------------------------
 	// [FREE SERVOS] Frees all the servos
-	private void FreeServos() throws IOException {
-		log.debug("FreeServos:");
+	public void FreeServos() throws IOException {
+		log.debug("Freeing servos.");
 		for (int LegIndex = 0; LegIndex < 32; LegIndex++) {
 			serout("#", LegIndex, "P0");
 		}
 		serout("T200\r");
+		log.info("Servos shut down.");
 		return;
 	}
 
@@ -401,7 +400,7 @@ public class Servo {
 	// --------------------------------------------------------------------
 	private String readline() throws IOException {
 		log.trace("readline");
-		String x = wiringPi.serialReadUntil(CR);
+		String x = wiringPi.serialReadln();
 		log.trace("readline returned '{}'", x);
 		return x;
 	}
@@ -431,4 +430,5 @@ public class Servo {
 		log.debug("sound: {}", Arrays.deepToString(listOfDurationAndNotes));
 		return;
 	}
+
 }

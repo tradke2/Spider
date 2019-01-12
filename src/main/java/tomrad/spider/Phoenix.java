@@ -1,6 +1,8 @@
 package tomrad.spider;
 
 import java.io.IOException;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.PostConstruct;
 
@@ -52,6 +54,7 @@ import tomrad.spider.Servo.CheckAnglesResult;
 @Component
 public class Phoenix {
 
+	private CountDownLatch mainLoopEnded;
 	// --------------------------------------------------------------------
 	// [CONSTANTS]
 
@@ -112,9 +115,6 @@ public class Phoenix {
 	@Autowired
 	private Controller controller;
 
-	/** Debugging aid: limits the count of the main loop */
-	private int remainingLoops = -1;
-
 	// ====================================================================
 	// [INIT]
 	@PostConstruct
@@ -159,10 +159,11 @@ public class Phoenix {
 	void MainLoop() throws IOException {
 
 		TravelLength travelLength = new TravelLength(0, 0, 0);
-
+		mainLoopEnded = new CountDownLatch(1);
+		
 		// main:
 		log.info("Entering main loop ...");
-		while (remainingLoops != 0) {
+		while (getRemainingLoops() > 0) {
 
 			try {
 
@@ -203,9 +204,8 @@ public class Phoenix {
 				// Store previous HexOn State
 				controller.rememberHexOn();
 	
-				if (remainingLoops > 0) {
-					remainingLoops -= 1;
-				}
+				decrementRemainingLoops();
+
 				// goto main
 			
 			} catch (IKSolutionError e) {
@@ -216,7 +216,12 @@ public class Phoenix {
 
 		// dead:
 		// goto dead
+		log.debug("Ended main loop");
+		servo.FreeServos();		
+		
+		mainLoopEnded.countDown();
 	}
+
 
 	// --------------------------------------------------------------------
 	// [WriteOutputs] Updates the state of the leds
@@ -245,6 +250,33 @@ public class Phoenix {
 			MainLoop();
 		} catch (IOException e) {
 			log.error("Unexpected error", e);
+		}
+	}
+
+	public void stop() {
+		setRemainingLoops(-1);		
+		try {
+			mainLoopEnded.await(10, TimeUnit.SECONDS);
+			log.debug("Phoenix stopped.");
+		} catch (InterruptedException e) {
+			log.error("Failed to stop gracefully.", e);
+		}
+	}
+
+	/** Debugging aid: limits the count of the main loop */
+	private volatile int remainingLoops = 500;
+
+	private synchronized void setRemainingLoops(int value) {
+		remainingLoops = value;
+	}
+
+	private synchronized int getRemainingLoops() {
+		return remainingLoops;
+	}
+
+	private synchronized void decrementRemainingLoops() {
+		if (remainingLoops > 0) {
+			remainingLoops -= 1;
 		}
 	}
 }
