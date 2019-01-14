@@ -163,7 +163,7 @@ public class Phoenix {
 		
 		// main:
 		log.info("Entering main loop ...");
-		while (getRemainingLoops() > 0) {
+		while (getRemainingLoops() != 0) {
 
 			try {
 
@@ -254,7 +254,7 @@ public class Phoenix {
 	}
 
 	public void stop() {
-		setRemainingLoops(-1);		
+		setRemainingLoops(1);		
 		try {
 			mainLoopEnded.await(10, TimeUnit.SECONDS);
 			log.debug("Phoenix stopped.");
@@ -264,7 +264,7 @@ public class Phoenix {
 	}
 
 	/** Debugging aid: limits the count of the main loop */
-	private volatile int remainingLoops = 500;
+	private volatile int remainingLoops = -1;
 
 	private synchronized void setRemainingLoops(int value) {
 		remainingLoops = value;
