@@ -1,6 +1,8 @@
 package tomrad.spider;
 
 import java.io.IOException;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.PostConstruct;
 
@@ -52,6 +54,7 @@ import tomrad.spider.Servo.CheckAnglesResult;
 @Component
 public class Phoenix {
 
+	private CountDownLatch mainLoopEnded;
 	// --------------------------------------------------------------------
 	// [CONSTANTS]
 
@@ -112,9 +115,6 @@ public class Phoenix {
 	@Autowired
 	private Controller controller;
 
-	/** Debugging aid: limits the count of the main loop */
-	private int remainingLoops = -1;
-
 	// ====================================================================
 	// [INIT]
 	@PostConstruct
@@ -126,7 +126,7 @@ public class Phoenix {
 		Eyes = false;
 
 		try {
-			
+
 			GPEnable = servo.InitServos(); // Tars Init Positions
 			log.info("InitServos: GPEnable={}", GPEnable);
 			singleLeg.InitSingleLeg();
@@ -134,19 +134,20 @@ public class Phoenix {
 			gait.InitGait();
 
 			// Initialize Controller
-			boolean success = controller.InitController();
-			log.info("InitController: success={}", success);
+			boolean success = false;
+			int attempt = 1;
+			while (!success) {
+				success = controller.InitController();
+				log.info("InitController {}: success={}", attempt++, success);
+			}
+
 			if (!success) {
 				quit();
 			}
 
-			log.info("Entering main loop ...");
-			MainLoop();
-			
 		} catch (Exception e) {
 			log.error("Unexpected error", e);
 		}
-		return;
 	}
 
 	private void quit() {
@@ -158,58 +159,69 @@ public class Phoenix {
 	void MainLoop() throws IOException {
 
 		TravelLength travelLength = new TravelLength(0, 0, 0);
-
+		mainLoopEnded = new CountDownLatch(1);
+		
 		// main:
-		while (remainingLoops != 0) {
+		log.info("Entering main loop ...");
+		while (getRemainingLoops() != 0) {
+
+			try {
+
+				// servo.pause(500); // pause 1000
+	
+				// Start time
+				servo.StartTimer();
+	
+				travelLength = controller.ControlInput(travelLength); // Read input
+	
+				// ReadButtons() // I/O used by the remote
+				WriteOutputs(); // Write Outputs
+	
+				// GP Player
+				if (GPEnable) {
+					servo.GPPlayer(GPStart, GPSeq);
+				}
+	
+				// Single leg control
+				singleLeg.SingleLegControl();
+	
+				// Gait
+				travelLength = gait.GaitSeq(travelLength);
+	
+				// Balance calculations
+				BalanceValue balanceValue = balance.CalcBalance();
+	
+				// calculate inverse kinematic
+				CalcIkResult ikResult = ikRoutines.CalcIK(balanceValue);
+	
+				// Check mechanical limits
+				CheckAnglesResult checkedAngles = servo.CheckAngles(ikResult);
+	
+				// Drive Servos
+				Eyes = servo.ServoDriverMain(Eyes, controller.isHexOn(), controller.isPrevHexOn(),
+						controller.getInputTimeDelay(), SpeedControl, travelLength, checkedAngles);
+	
+				// Store previous HexOn State
+				controller.rememberHexOn();
+	
+				decrementRemainingLoops();
+
+				// goto main
 			
-			//servo.pause(500); // pause 1000
-
-			// Start time
-			servo.StartTimer();
-
-			travelLength = controller.ControlInput(travelLength); // Read input
-
-			// ReadButtons() // I/O used by the remote
-			WriteOutputs(); // Write Outputs
-
-			// GP Player
-			if (GPEnable) {
-				servo.GPPlayer(GPStart, GPSeq);
+			} catch (IKSolutionError e) {
+				log.error(e.getMessage());
 			}
 
-			// Single leg control
-			singleLeg.SingleLegControl();
-
-			// Gait
-			travelLength = gait.GaitSeq(travelLength);
-
-			// Balance calculations
-			BalanceValue balanceValue = balance.CalcBalance();
-
-			// calculate inverse kinematic
-			CalcIkResult ikResult = ikRoutines.CalcIK(balanceValue);
-
-			// Check mechanical limits
-			CheckAnglesResult checkedAngles = servo.CheckAngles(ikResult.coxaAngle, ikResult.femurAngle,
-					ikResult.tibiaAngle);
-
-			// Drive Servos
-			Eyes = servo.ServoDriverMain(Eyes, controller.isHexOn(), controller.isPrevHexOn(),
-					controller.getInputTimeDelay(), SpeedControl, travelLength, checkedAngles.coxaAngle,
-					checkedAngles.femurAngle, checkedAngles.tibiaAngle);
-
-			// Store previous HexOn State
-			controller.rememberHexOn();
-
-			if (remainingLoops > 0) {
-				remainingLoops -= 1;
-			}
-			// goto main
 		}
 
 		// dead:
 		// goto dead
+		log.debug("Ended main loop");
+		servo.FreeServos();		
+		
+		mainLoopEnded.countDown();
 	}
+
 
 	// --------------------------------------------------------------------
 	// [WriteOutputs] Updates the state of the leds
@@ -234,6 +246,37 @@ public class Phoenix {
 	// --------------------------------------------------------------------
 	// [Entry point]
 	public void run() {
-		Init();
+		try {
+			MainLoop();
+		} catch (IOException e) {
+			log.error("Unexpected error", e);
+		}
+	}
+
+	public void stop() {
+		setRemainingLoops(1);		
+		try {
+			mainLoopEnded.await(10, TimeUnit.SECONDS);
+			log.debug("Phoenix stopped.");
+		} catch (InterruptedException e) {
+			log.error("Failed to stop gracefully.", e);
+		}
+	}
+
+	/** Debugging aid: limits the count of the main loop */
+	private volatile int remainingLoops = -1;
+
+	private synchronized void setRemainingLoops(int value) {
+		remainingLoops = value;
+	}
+
+	private synchronized int getRemainingLoops() {
+		return remainingLoops;
+	}
+
+	private synchronized void decrementRemainingLoops() {
+		if (remainingLoops > 0) {
+			remainingLoops -= 1;
+		}
 	}
 }

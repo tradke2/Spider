@@ -1,5 +1,8 @@
 package tomrad.spider;
 
+import static tomrad.spider.Ps2ControllerConstants.BYTE_DELAY;
+import static tomrad.spider.Ps2ControllerConstants.CLK_DELAY;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,8 +15,8 @@ public class SpiController {
 
 	private final GpioWiring wiringPi;
 
-	private int CLK_DELAY = 4; // 4
-	private int BYTE_DELAY = 20;
+//	private int CLK_DELAY = 4; // 4
+//	private int BYTE_DELAY = 20;
 
 	// --------------------------------------------------------------------
 	// [PS2 GPIO Pins The Controller Is Connected To As Used By WirinPi]
@@ -91,7 +94,7 @@ public class SpiController {
 
 		for (int i = 0; i < outbytes.length; i++)
 		{
-			inbytes[i] = transmitByte_neu(outbytes[i]);
+			inbytes[i] = transmitByte(outbytes[i]);
 			wiringPi.delayMicroseconds(BYTE_DELAY);
 		}
 	
@@ -106,7 +109,7 @@ public class SpiController {
 		return inbytes;
 	}
 
-	private short transmitByte_neu(short outByte) {
+	private short transmitByte(short outByte) {
 		short inByte = 0;
 		for (int i = 0; i < 8; i++) {
 			int outBit = (outByte & 0x01);
@@ -115,10 +118,6 @@ public class SpiController {
 			outByte >>>= 1;
 		}
 		return inByte;
-	}
-
-	public void setClkPin() {
-		wiringPi.digitalWrite(_clkPin, 1); // high PS2CLK
 	}
 
 	static String byteArrayToString(short[] ba) {		

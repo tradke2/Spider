@@ -18,6 +18,8 @@ public interface GpioWiring {
 	String PUD_UP = "PulldownUp";
 	String PUD_DOWN = "PUD_DOWN";
 	String PUD_OFF = "PUD_OFF";
+	char CR = 13;
+
 
 	int wiringPiSetup();
 
@@ -45,8 +47,8 @@ public interface GpioWiring {
 
 	void serialClose() throws IOException;
 
-	String serialReadUntil(char endOfLine) throws IOException;
-
 	void readInto(int[] inputData) throws IOException;
+
+	String serialReadln() throws IOException;
 
 }

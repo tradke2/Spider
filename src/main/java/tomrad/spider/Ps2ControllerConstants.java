@@ -19,12 +19,12 @@ public class Ps2ControllerConstants {
 //	    return x ^ (1<<y) 	// Toggle bit y in x
 
 	// Delays
-	public static final int CLK_DELAY       = 4;
-	public static final int BYTE_DELAY      = 20;
-	public static final int MAX_READ_DELAY  = 10;
+	public static final int CLK_DELAY       = 4;	// determines the clk rate (microseconds per half cycle)
+	public static final int BYTE_DELAY      = 20;	// pause between bytes in microseconds
+	public static final int MAX_READ_DELAY  = 50;	// max value for delay between successive reads in microseconds
 
 	// Maximum number of init tries
-	public static final int MAX_INIT_ATTEMPT = 10;
+	public static final int MAX_INIT_ATTEMPT = 100;
 
 	// Controller Modes - From: http://www.lynxmotion.com/images/files/ps2cmd01.txt 
 	public static final short DIGITALMODE     = 0x41;
@@ -70,8 +70,7 @@ public class Ps2ControllerConstants {
 	public static final short[] enterConfigMode             = new short[] {0x01,0x43,0x00,0x01,0x00};
 	public static final short[] setModeAnalogLockMode       = new short[] {0x01,0x44,0x00,0x01,0x03,0x00,0x00,0x00,0x00};
 	public static final short[] setAllPressureMode          = new short[] {0x01,0x4F,0x00,0xFF,0xFF,0x03,0x00,0x00,0x00};    // aka DS2_NATIVE_MODE
-	public static final short[] exitConfigMode              = new short[] {0x01,0x43,0x00,0x00,0x5A,0x5A,0x5A,0x5A,0x5A};
-	public static final short[] exitConfigMode2             = new short[] {0x01,0x43,0x00,0x00,0x00,0x00,0x00,0x00,0x00};    // aka CONFIG_MODE_EXIT (Lynx)
+	public static final short[] exitConfigMode              = new short[] {0x01,0x43,0x00,0x00,0x00,0x00,0x00,0x00,0x00};    // aka CONFIG_MODE_EXIT (Lynx)
 	public static final short[] exitConfigAllPressureMode   = new short[] {0x01,0x43,0x00,0x00,0x5A,0x5A,0x5A,0x5A,0x5A};    // aka CONFIG_MODE_EXIT_DS2_NATIVE
 	public static final short[] typeRead                    = new short[] {0x01,0x45,0x00,0x5A,0x5A,0x5A,0x5A,0x5A,0x5A};
 	public static final short[] pollMode                    = new short[] {0x01,0x42,0x00,0x00,0x00};

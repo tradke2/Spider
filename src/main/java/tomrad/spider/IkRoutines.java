@@ -41,10 +41,6 @@ import static tomrad.spider.Config_Ch3.cRROffsetZ;
 import static tomrad.spider.Config_Ch3.cTibiaLength;
 
 import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.DoubleStream;
-import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -218,19 +214,11 @@ public class IkRoutines {
 	}
 
 	static class LegIkResult {
-		public final boolean ikSolution;
-		public final boolean ikSolutionWarning;
-		public final boolean ikSolutionError;
 		public final int femurAngle;
 		public final int tibiaAngle;
 		public final int coxaAngle;
 
-		public LegIkResult(boolean ikSolution, boolean ikSolutionWarning, boolean ikSolutionError, int coxaAngle,
-				int femurAngle, int tibiaAngle) {
-			super();
-			this.ikSolution = ikSolution;
-			this.ikSolutionWarning = ikSolutionWarning;
-			this.ikSolutionError = ikSolutionError;
+		public LegIkResult(int coxaAngle, int femurAngle, int tibiaAngle) {
 			this.coxaAngle = coxaAngle;
 			this.femurAngle = femurAngle;
 			this.tibiaAngle = tibiaAngle;
@@ -247,9 +235,6 @@ public class IkRoutines {
 	 * <li>IKFeetPosX - Input position of the Feet X</li>
 	 * <li>IKFeetPosY - Input position of the Feet Y</li>
 	 * <li>IKFeetPosZ - Input Position of the Feet Z</li>
-	 * <li>IKSolution - Output true IF the solution is possible</li>
-	 * <li>IKSolutionWarning - Output true IF the solution is NEARLY possible</li>
-	 * <li>IKSolutionError - Output true IF the solution is NOT possible</li>
 	 * <li>FemurAngle1 - Output Angle of Femur in degrees</li>
 	 * <li>TibiaAngle1 - Output Angle of Tibia in degrees</li>
 	 * <li>CoxaAngle1 - Output Angle of Coxa in degrees</li>
@@ -262,21 +247,22 @@ public class IkRoutines {
 	 * @param IKFeetPosZ
 	 *            Input Position of the Feet Z
 	 * @return Values of angles of coxa, femur and tibia
+	 * @throws IKSolutionError If there is no solution for the given arguments.
 	 */
-	protected LegIkResult LegIK(double IKFeetPosX, double IKFeetPosY, double IKFeetPosZ) {
+	protected LegIkResult LegIK(double IKFeetPosX, double IKFeetPosY, double IKFeetPosZ) throws IKSolutionError {
 
 		logger.debug("LegIK: IKFeetPosX={}, IKFeetPosY={}, IKFeetPosZ={}", IKFeetPosX, IKFeetPosY, IKFeetPosZ);
 
 		// Length between the Coxa and Feet
-		double IKFeetPosXZ = Math.sqrt((IKFeetPosX * IKFeetPosX) + (IKFeetPosZ * IKFeetPosZ));
+		double IKFeetPosXZ = Math.sqrt(IKFeetPosX * IKFeetPosX + IKFeetPosZ * IKFeetPosZ) - cCoxaLength;
 		logger.trace("LegIK: IKFeetPosXZ={}", IKFeetPosXZ);
 
 		// IKSW - Length between shoulder and wrist
-		double IKSW = Math.sqrt((IKFeetPosXZ - cCoxaLength) * (IKFeetPosXZ - cCoxaLength) + (IKFeetPosY * IKFeetPosY));
+		double IKSW = Math.sqrt(IKFeetPosXZ * IKFeetPosXZ + IKFeetPosY * IKFeetPosY);
 		logger.trace("LegIK: IKSW={}", IKSW);
 
 		// IKA1 - Angle between SW line and the ground in rad
-		double IKA1 = trig.getBoogTan(IKFeetPosXZ - cCoxaLength, IKFeetPosY);
+		double IKA1 = trig.getBoogTan(IKFeetPosXZ, IKFeetPosY);
 		logger.trace("LegIK: IKA1={}", IKA1);
 
 		// IKA2 - Angle of the line S>W with respect to the femur in radians
@@ -310,40 +296,21 @@ public class IkRoutines {
 
 		// Set the Solution quality
 		if (Double.isNaN(coxaAngle) || Double.isNaN(femurAngle) || Double.isNaN(tibiaAngle)) {
-			IKSolution = false;
-			IKSolutionError = true;
-		} else {
-			IKSolution = true;
-			IKSolutionError = false;
-		}
-
-		if (Double.isNaN(femurAngle)) {
-			femurAngle = IKA2 > 0 ? 0 : 180;
-		}
-		if (Double.isNaN(tibiaAngle)) {
-			tibiaAngle = (Temp1 / Temp2) > 0 ? 0 : 180;
+			throw new IKSolutionError(coxaAngle, femurAngle, tibiaAngle, IKFeetPosX, IKFeetPosY, IKFeetPosZ);
 		}
 
 		logger.debug("LegIK: IKSolution={}, IKSolutionWarning={}, IKSolutionError={}", IKSolution, IKSolutionWarning,
 				IKSolutionError);
 		logger.debug("LegIK: CoxaAngle={}, FemurAngle={}, TibiaAngle={}", coxaAngle, femurAngle, tibiaAngle);
-		return new LegIkResult(IKSolution, IKSolutionWarning, IKSolutionError, (int) Math.rint(coxaAngle),
-				(int) Math.rint(femurAngle), (int) Math.rint(tibiaAngle));
+		return new LegIkResult((int) Math.rint(coxaAngle), (int) Math.rint(femurAngle), (int) Math.rint(tibiaAngle));
 	}
 
 	public static class CalcIkResult {
-		public final boolean ikSolution;
-		public final boolean ikSolutionWarning;
-		public final boolean ikSolutionError;
 		public final int[] coxaAngle;
 		public final int[] femurAngle;
 		public final int[] tibiaAngle;
 
-		public CalcIkResult(boolean ikSolution, boolean ikSolutionWarning, boolean ikSolutionError, int[] coxaAngle,
-				int[] femurAngle, int[] tibiaAngle) {
-			this.ikSolution = ikSolution;
-			this.ikSolutionWarning = ikSolutionWarning;
-			this.ikSolutionError = ikSolutionError;
+		public CalcIkResult(int[] coxaAngle, int[] femurAngle, int[] tibiaAngle) {
 			this.coxaAngle = coxaAngle;
 			this.femurAngle = femurAngle;
 			this.tibiaAngle = tibiaAngle;
@@ -352,11 +319,7 @@ public class IkRoutines {
 
 	// --------------------------------------------------------------------
 	// [CALC INVERSE KINEMATIC] Calculates inverse kinematic
-	public CalcIkResult CalcIK(BalanceValue balanceValue) {
-		// Reset IKsolution indicators
-		boolean ikSolution = false;
-		boolean ikSolutionWarning = false;
-		boolean ikSolutionError = false;
+	public CalcIkResult CalcIK(BalanceValue balanceValue) throws IKSolutionError {
 
 		logger.debug("CalcIK: LegPosX={}", Arrays.toString(LegPosX));
 		logger.debug("CalcIK: LegPosY={}", Arrays.toString(LegPosY));
@@ -383,9 +346,6 @@ public class IkRoutines {
 			CoxaAngle[LegIndex] = legIk.coxaAngle + cCoxaAngle[LegIndex];
 			FemurAngle[LegIndex] = legIk.femurAngle;
 			TibiaAngle[LegIndex] = legIk.tibiaAngle;
-			ikSolution &= legIk.ikSolution;
-			ikSolutionWarning |= legIk.ikSolutionWarning;
-			ikSolutionError |= legIk.ikSolutionError;
 		}
 
 		// Do IK for all Left legs
@@ -404,9 +364,6 @@ public class IkRoutines {
 			CoxaAngle[LegIndex] = legIk.coxaAngle + cCoxaAngle[LegIndex];
 			FemurAngle[LegIndex] = legIk.femurAngle;
 			TibiaAngle[LegIndex] = legIk.tibiaAngle;
-			ikSolution &= legIk.ikSolution;
-			ikSolutionWarning |= legIk.ikSolutionWarning;
-			ikSolutionError |= legIk.ikSolutionError;
 		}
 
 		// Write IK errors to leds
@@ -417,17 +374,17 @@ public class IkRoutines {
 		logger.debug("CalcIK: FemurAngle={}", Arrays.toString(FemurAngle));
 		logger.debug("CalcIK: TibiaAngle={}", Arrays.toString(TibiaAngle));
 
-		return new CalcIkResult(ikSolution, ikSolutionWarning, ikSolutionError, CoxaAngle, FemurAngle, TibiaAngle);
+		return new CalcIkResult(CoxaAngle, FemurAngle, TibiaAngle);
 	}
 
-	private String[] round(double[] input) {
-		DoubleStream of = Arrays.stream(input);
-		Stream<String> s = of.mapToObj(d -> {
-			return String.format("%.2f", d);
-		});
-		List<String> x = s.collect(Collectors.toList());
-		return x.toArray(new String[0]);
-	}
+//	private String[] round(double[] input) {
+//		DoubleStream of = Arrays.stream(input);
+//		Stream<String> s = of.mapToObj(d -> {
+//			return String.format("%.2f", d);
+//		});
+//		List<String> x = s.collect(Collectors.toList());
+//		return x.toArray(new String[0]);
+//	}
 
 	// --------------------------------------------------------------------
 	// [INIT INVERSE KINEMATICS] Sets body position and rotation to 0

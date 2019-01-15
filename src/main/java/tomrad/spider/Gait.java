@@ -30,21 +30,35 @@ public class Gait
 
 	// --------------------------------------------------------------------
 	// [gait]
-	private int GaitType        = 255; // Gait type
+	/** Gait type */
+	private int GaitType        = 255; 
 
-	static int NomGaitSpeed = 0;  // Nominal speed of the gait
+	/** Nominal speed of the gait */
+	static int NomGaitSpeed = 0;
+	
+	/** Current Travel height */
+	static double LegLiftHeight = Double.NaN; 	
 
-	static double LegLiftHeight = Double.NaN; 	// Current Travel height
+	/** Number of steps that a leg is on the floor while walking */
+	private int TLDivFactor     = 255;
+	
+	/** Number of steps that a single leg is lifted (1-3) */
+	private int NrLiftedPos     = 255; 
+	
+	/** If TRUE the outer positions of the ligted legs will be half height */
+	private double HalfLiftHeigth  = Double.NaN;  
 
-	private int TLDivFactor     = 255;  // Number of steps that a leg is on the floor while walking
-	private int NrLiftedPos     = 255;  // Number of steps that a single leg is lifted (1-3)
-	private double HalfLiftHeigth  = Double.NaN;  // If TRUE the outer positions of the ligted legs will be half height
+	/** Temp to check if the gait is in motion */
+	private boolean GaitInMotion   = false;
+	
+	/** Number of steps in gait */
+	private int StepsInGait     = 255;
+	
+	/** Actual Gait step */
+	private int GaitStep        = 255; 	
 
-	private boolean GaitInMotion   = false;  // Temp to check if the gait is in motion
-	private int StepsInGait     = 255;  // Number of steps in gait
-	private int GaitStep        = 255; 	// Actual Gait step
-
-	private int GaitLegNr[]     = new int[] {255, 255, 255, 255, 255, 255};  // Init position of the leg
+	/** Init position of the leg */
+	private int GaitLegNr[]     = new int[] {255, 255, 255, 255, 255, 255};  
 
 	// --------------------------------------------------------------------
 	@PostConstruct

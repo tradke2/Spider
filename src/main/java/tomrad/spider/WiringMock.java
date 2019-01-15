@@ -96,15 +96,18 @@ public class WiringMock implements GpioWiring {
 
 	}
 
-	@Override
-	public String serialReadUntil(char endOfLine) throws IOException {
+	private String serialReadUntil(char endOfLine) throws IOException {
 		return "SSC32-V2.0USB" + endOfLine;
 	}
 
 	@Override
 	public void readInto(int[] inputData) throws IOException {
 		// TODO Auto-generated method stub
+	}
 
+	@Override
+	public String serialReadln() throws IOException {
+		return serialReadUntil(CR);
 	}
 
 }
