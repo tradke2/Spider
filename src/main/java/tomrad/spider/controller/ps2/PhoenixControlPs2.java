@@ -1,8 +1,6 @@
-package tomrad.spider;
+package tomrad.spider.controller.ps2;
 
 import static tomrad.spider.DelayedFormatter.format;
-import static tomrad.spider.Gait.LegLiftHeight;
-import static tomrad.spider.Gait.cRF;
 import static tomrad.spider.IkRoutines.BalanceMode;
 import static tomrad.spider.IkRoutines.BodyPosX;
 import static tomrad.spider.IkRoutines.BodyPosY;
@@ -14,12 +12,19 @@ import static tomrad.spider.Phoenix.GPSeq;
 import static tomrad.spider.Phoenix.GPStart;
 import static tomrad.spider.Phoenix.SpeedControl;
 import static tomrad.spider.SingleLeg.SelectedLeg;
-import static tomrad.spider.SpiController.byteArrayToString;
+import static tomrad.spider.controller.ps2.SpiController.byteArrayToString;
+import static tomrad.spider.gait.Gait.LegLiftHeight;
+import static tomrad.spider.gait.Gait.cRF;
 
 import java.util.Arrays;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import tomrad.spider.GpioWiring;
+import tomrad.spider.TravelLength;
+import tomrad.spider.controller.Controller;
+import tomrad.spider.gait.Gait;
 
 /**
  * The control input subroutine for the phoenix software is placed in this file.
@@ -195,7 +200,7 @@ public class PhoenixControlPs2 implements Controller {
 
 	private Ps2Controller ps2Controller;
 
-	PhoenixControlPs2(Gait gait, GpioWiring wiringPi) {
+	public PhoenixControlPs2(Gait gait, GpioWiring wiringPi) {
 		this.gait = gait;
 		ps2Controller = new Ps2Controller(wiringPi);
 	}

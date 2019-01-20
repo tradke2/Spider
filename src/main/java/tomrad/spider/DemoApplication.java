@@ -14,6 +14,11 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Scope;
 
+import tomrad.spider.controller.Controller;
+import tomrad.spider.controller.mock.ControllerMock;
+import tomrad.spider.controller.ps2.PhoenixControlPs2;
+import tomrad.spider.gait.Gait;
+
 @SpringBootApplication
 public class DemoApplication {
 

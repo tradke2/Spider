@@ -84,6 +84,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import tomrad.spider.IkRoutines.CalcIkResult;
+import tomrad.spider.gait.Gait;
 
 @Component
 public class Servo {
@@ -178,7 +179,7 @@ public class Servo {
 	// --------------------------------------------------------------------
 	// [SERVO DRIVER MAIN] Updates the positions of the servos
 	public boolean ServoDriverMain(boolean Eyes, boolean HexOn, boolean Prev_HexOn, int InputTimeDelay,
-			int SpeedControl, TravelLength travelLength, CheckAnglesResult checkedAngels)
+			int SpeedControl, TravelLength travelLength, CheckAnglesResult checkedAngels, int nominalGaitSpeed)
 			throws IOException {
 		log.debug("ServoDriveMain: HexOn={}, Prev_HexOn={}\n", HexOn, Prev_HexOn);
 
@@ -191,13 +192,13 @@ public class Servo {
 				Eyes = true;
 			}
 
-			log.debug("ServoDriverMain: NomGaitSpeed={}", Gait.NomGaitSpeed);
+			log.debug("ServoDriverMain: NomGaitSpeed={}", nominalGaitSpeed);
 			log.debug("ServoDriverMain: InputTimeDelay={}", InputTimeDelay);
 			log.debug("ServoDriverMain: SpeedControl={}", SpeedControl);
 
 			// Set SSC time
 			if (travelLength.isInMotion()) {
-				SSCTime = Gait.NomGaitSpeed + (InputTimeDelay * 2) + SpeedControl;
+				SSCTime = nominalGaitSpeed + (InputTimeDelay * 2) + SpeedControl;
 
 				// Add aditional delay when Balance mode is on
 				if (BalanceMode) {

@@ -13,6 +13,10 @@ import org.mockito.internal.util.reflection.Whitebox;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.slf4j.Logger;
 
+import tomrad.spider.controller.Controller;
+import tomrad.spider.controller.mock.ControllerMock;
+import tomrad.spider.gait.Gait;
+
 @RunWith(MockitoJUnitRunner.class)
 public class PhoenixTest {
 

@@ -1,4 +1,4 @@
-package tomrad.spider;
+package tomrad.spider.gait;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -17,6 +17,9 @@ import org.mockito.internal.util.reflection.Whitebox;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.slf4j.Logger;
 
+import tomrad.spider.IkRoutines;
+import tomrad.spider.TravelLength;
+
 @RunWith(MockitoJUnitRunner.class)
 public class GaitTest {
 
@@ -26,15 +29,6 @@ public class GaitTest {
 	@InjectMocks
 	@Spy
 	private Gait testee;
-
-	private final int[] gait0LegNr = new int[] {4, 6, 2, 1, 3, 5};
-	private final int[] gait1LegNr = new int[] {7, 11, 3, 1, 5, 9};
-	private final int[] gait2LegNr = new int[] {5, 8, 2, 1, 4, 7};
-	private final int[] gait3LegNr = new int[] {1, 3, 1, 3, 1, 3};
-	private final int[] gait4LegNr = new int[] {1, 4, 1, 4, 1, 4};
-	private final int[] gait5LegNr = new int[] {1, 5, 1, 5, 1, 5};
-	private final int[] gait6LegNr = new int[] {7, 9, 11, 1, 3, 5};
-	private final int[] gait7LegNr = new int[] {13, 16, 1, 4, 7, 10};
 
 	@Before
 	public void setUp() {
@@ -53,7 +47,7 @@ public class GaitTest {
 	public void testInitGait() {
 		Mockito.reset(testee);
 		testee.InitGait();
-		assertEquals(0, Whitebox.getInternalState(testee, "GaitType"));
+		assertEquals(0, Whitebox.getInternalState(testee, "gaitType"));
 		assertEquals(30.0, Whitebox.getInternalState(testee, "LegLiftHeight"));
 		assertEquals(1, Whitebox.getInternalState(testee, "GaitStep"));
 		Mockito.verify(testee).GaitSelect(Mockito.anyInt());
@@ -75,97 +69,73 @@ public class GaitTest {
 	@Test
 	public void testGaitSelect_Gait0Selected_initsStateCorrectly() {
 		testee.GaitSelect(0);
-		assertEquals(0, Whitebox.getInternalState(testee, "GaitType"));
-		assertArrayEquals(gait0LegNr , (int[]) Whitebox.getInternalState(testee, "GaitLegNr"));
-		assertEquals(1, Whitebox.getInternalState(testee, "NrLiftedPos"));
-		assertEquals(0.0, Whitebox.getInternalState(testee, "HalfLiftHeigth"));
-		assertEquals(4, Whitebox.getInternalState(testee, "TLDivFactor"));
-		assertEquals(6, Whitebox.getInternalState(testee, "StepsInGait"));
-		assertEquals(100, Whitebox.getInternalState(testee, "NomGaitSpeed"));
+		int gaitType = (int) Whitebox.getInternalState(testee, "gaitType");
+		assertEquals(0, gaitType);
+		Object[] gaits = (Object [])Whitebox.getInternalState(testee, "gaits");
+		assertEquals(Ripple6Gait.class, gaits[0].getClass());
 	}
 
 	@Test
 	public void testGaitSelect_Gait1Selected_initsStateCorrectly() {
 		testee.GaitSelect(1);
-		assertEquals(1, Whitebox.getInternalState(testee, "GaitType"));
-		assertArrayEquals(gait1LegNr , (int[]) Whitebox.getInternalState(testee, "GaitLegNr"));
-		assertEquals(3, Whitebox.getInternalState(testee, "NrLiftedPos"));
-		assertEquals(0.0, Whitebox.getInternalState(testee, "HalfLiftHeigth"));
-		assertEquals(8, Whitebox.getInternalState(testee, "TLDivFactor"));
-		assertEquals(12, Whitebox.getInternalState(testee, "StepsInGait"));
-		assertEquals(85, Whitebox.getInternalState(testee, "NomGaitSpeed"));
+		int gaitType = (int) Whitebox.getInternalState(testee, "gaitType");
+		assertEquals(1, gaitType);
+		Object[] gaits = (Object [])Whitebox.getInternalState(testee, "gaits");
+		assertEquals(Ripple12Gait.class, gaits[1].getClass());
 	}
 
 	@Test
 	public void testGaitSelect_Gait2Selected_initsStateCorrectly() {
 		testee.GaitSelect(2);
-		assertEquals(2, Whitebox.getInternalState(testee, "GaitType"));
-		assertArrayEquals(gait2LegNr , (int[]) Whitebox.getInternalState(testee, "GaitLegNr"));
-		assertEquals(2, Whitebox.getInternalState(testee, "NrLiftedPos"));
-		assertEquals(0.0, Whitebox.getInternalState(testee, "HalfLiftHeigth"));
-		assertEquals(6, Whitebox.getInternalState(testee, "TLDivFactor"));
-		assertEquals(9, Whitebox.getInternalState(testee, "StepsInGait"));
-		assertEquals(100, Whitebox.getInternalState(testee, "NomGaitSpeed"));
+		int gaitType = (int) Whitebox.getInternalState(testee, "gaitType");
+		assertEquals(2, gaitType);
+		Object[] gaits = (Object [])Whitebox.getInternalState(testee, "gaits");
+		assertEquals(Quadripple9Gait.class, gaits[2].getClass());
 	}
 
 	@Test
 	public void testGaitSelect_Gait3Selected_initsStateCorrectly() {
 		testee.GaitSelect(3);
-		assertEquals(3, Whitebox.getInternalState(testee, "GaitType"));
-		assertArrayEquals(gait3LegNr , (int[]) Whitebox.getInternalState(testee, "GaitLegNr"));
-		assertEquals(1, Whitebox.getInternalState(testee, "NrLiftedPos"));
-		assertEquals(0.0, Whitebox.getInternalState(testee, "HalfLiftHeigth"));
-		assertEquals(2, Whitebox.getInternalState(testee, "TLDivFactor"));
-		assertEquals(4, Whitebox.getInternalState(testee, "StepsInGait"));
-		assertEquals(150, Whitebox.getInternalState(testee, "NomGaitSpeed"));
+		int gaitType = (int) Whitebox.getInternalState(testee, "gaitType");
+		assertEquals(3, gaitType);
+		Object[] gaits = (Object [])Whitebox.getInternalState(testee, "gaits");
+		assertEquals(Tripod4Gait.class, gaits[3].getClass());
 	}
 
 	@Test
 	public void testGaitSelect_Gait4Selected_initsStateCorrectly() {
 		testee.GaitSelect(4);
-		assertEquals(4, Whitebox.getInternalState(testee, "GaitType"));
-		assertArrayEquals(gait4LegNr , (int[]) Whitebox.getInternalState(testee, "GaitLegNr"));
-		assertEquals(2, Whitebox.getInternalState(testee, "NrLiftedPos"));
-		assertEquals(0.0, Whitebox.getInternalState(testee, "HalfLiftHeigth"));
-		assertEquals(4, Whitebox.getInternalState(testee, "TLDivFactor"));
-		assertEquals(6, Whitebox.getInternalState(testee, "StepsInGait"));
-		assertEquals(100, Whitebox.getInternalState(testee, "NomGaitSpeed"));
+		int gaitType = (int) Whitebox.getInternalState(testee, "gaitType");
+		assertEquals(4, gaitType);
+		Object[] gaits = (Object [])Whitebox.getInternalState(testee, "gaits");
+		assertEquals(Tripod6Gait.class, gaits[4].getClass());
 	}
 
 	@Test
 	public void testGaitSelect_Gait5Selected_initsStateCorrectly() {
 		testee.GaitSelect(5);
-		assertEquals(5, Whitebox.getInternalState(testee, "GaitType"));
-		assertArrayEquals(gait5LegNr , (int[]) Whitebox.getInternalState(testee, "GaitLegNr"));
-		assertEquals(3, Whitebox.getInternalState(testee, "NrLiftedPos"));
-		assertEquals(1.0, Whitebox.getInternalState(testee, "HalfLiftHeigth"));
-		assertEquals(4, Whitebox.getInternalState(testee, "TLDivFactor"));
-		assertEquals(8, Whitebox.getInternalState(testee, "StepsInGait"));
-		assertEquals(85, Whitebox.getInternalState(testee, "NomGaitSpeed"));
+		int gaitType = (int) Whitebox.getInternalState(testee, "gaitType");
+		assertEquals(5, gaitType);
+		Object[] gaits = (Object [])Whitebox.getInternalState(testee, "gaits");
+		assertEquals(Tripod8Gait.class, gaits[5].getClass());
 	}
 
 	@Test
 	public void testGaitSelect_Gait6Selected_initsStateCorrectly() {
 		testee.GaitSelect(6);
-		assertEquals(6, Whitebox.getInternalState(testee, "GaitType"));
-		assertArrayEquals(gait6LegNr , (int[]) Whitebox.getInternalState(testee, "GaitLegNr"));
-		assertEquals(1, Whitebox.getInternalState(testee, "NrLiftedPos"));
-		assertEquals(0.0, Whitebox.getInternalState(testee, "HalfLiftHeigth"));
-		assertEquals(10, Whitebox.getInternalState(testee, "TLDivFactor"));
-		assertEquals(12, Whitebox.getInternalState(testee, "StepsInGait"));
-		assertEquals(85, Whitebox.getInternalState(testee, "NomGaitSpeed"));
+		int gaitType = (int) Whitebox.getInternalState(testee, "gaitType");
+		assertEquals(6, gaitType);
+		Object[] gaits = (Object [])Whitebox.getInternalState(testee, "gaits");
+		assertEquals(Wave12Gait.class, gaits[6].getClass());
 	}
 
 	@Test
 	public void testGaitSelect_Gait7Selected_initsStateCorrectly() {
 		testee.GaitSelect(7);
-		assertEquals(7, Whitebox.getInternalState(testee, "GaitType"));
-		assertArrayEquals(gait7LegNr , (int[]) Whitebox.getInternalState(testee, "GaitLegNr"));
-		assertEquals(2, Whitebox.getInternalState(testee, "NrLiftedPos"));
-		assertEquals(0.0, Whitebox.getInternalState(testee, "HalfLiftHeigth"));
-		assertEquals(16, Whitebox.getInternalState(testee, "TLDivFactor"));
-		assertEquals(18, Whitebox.getInternalState(testee, "StepsInGait"));
-		assertEquals(85, Whitebox.getInternalState(testee, "NomGaitSpeed"));
+		int gaitType = (int) Whitebox.getInternalState(testee, "gaitType");
+		assertEquals(7, gaitType);
+		Object[] gaits = (Object [])Whitebox.getInternalState(testee, "gaits");
+		assertEquals(Wave18Gait.class, gaits[7].getClass());
 	}
 
 	@Test

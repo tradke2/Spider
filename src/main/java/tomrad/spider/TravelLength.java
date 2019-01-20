@@ -64,7 +64,7 @@ public class TravelLength {
 //		return builder.toString();
 	}
 
-	boolean isInMotion() {
+	public boolean isInMotion() {
 		boolean result = Math.abs(lengthX) > Config_Ch3.cTravelDeadZone || Math.abs(lengthZ) > Config_Ch3.cTravelDeadZone
 				|| Math.abs(rotationY * 2) > Config_Ch3.cTravelDeadZone;
 		logger.trace("{}: isInMotion={}", this, result);

@@ -1,11 +1,12 @@
-package tomrad.spider;
+package tomrad.spider.controller.ps2;
 
-import static tomrad.spider.Ps2ControllerConstants.BYTE_DELAY;
-import static tomrad.spider.Ps2ControllerConstants.CLK_DELAY;
+import static tomrad.spider.controller.ps2.Ps2ControllerConstants.BYTE_DELAY;
+import static tomrad.spider.controller.ps2.Ps2ControllerConstants.CLK_DELAY;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import tomrad.spider.GpioWiring;
 import tomrad.spider.GpioWiring.PinMode;
 import tomrad.spider.GpioWiring.PulldownMode;
 
@@ -120,7 +121,7 @@ public class SpiController {
 		return inByte;
 	}
 
-	static String byteArrayToString(short[] ba) {		
+	public static String byteArrayToString(short[] ba) {		
 		StringBuilder sb = new StringBuilder("[");
 		for (int i = 0; i < ba.length; i++)
 		{

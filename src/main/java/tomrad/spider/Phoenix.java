@@ -13,6 +13,8 @@ import org.springframework.stereotype.Component;
 import tomrad.spider.Balance.BalanceValue;
 import tomrad.spider.IkRoutines.CalcIkResult;
 import tomrad.spider.Servo.CheckAnglesResult;
+import tomrad.spider.controller.Controller;
+import tomrad.spider.gait.Gait;
 
 // -*- coding: utf-8 -*-
 
@@ -73,10 +75,10 @@ public class Phoenix {
 	// --------------------------------------------------------------------
 	// [GP PLAYER]
 	/** Start the GP Player */
-	static int GPStart = 0;
+	public static int GPStart = 0;
 
 	/** Number of the sequence */
-	static int GPSeq = 0;
+	public static int GPSeq = 0;
 
 	/** Received data to check the SSC Version */
 	char[] GPVerData = new char[] { 0, 0, 0 };
@@ -92,7 +94,7 @@ public class Phoenix {
 	boolean Eyes = false; // Eyes output
 	// --------------------------------------------------------------------
 	// [VARIABLES]
-	static int SpeedControl = 0; // Adjustible Delay
+	public static int SpeedControl = 0; // Adjustible Delay
 
 	@Autowired
 	private Logger log;
@@ -199,7 +201,7 @@ public class Phoenix {
 	
 				// Drive Servos
 				Eyes = servo.ServoDriverMain(Eyes, controller.isHexOn(), controller.isPrevHexOn(),
-						controller.getInputTimeDelay(), SpeedControl, travelLength, checkedAngles);
+						controller.getInputTimeDelay(), SpeedControl, travelLength, checkedAngles, gait.getNominalSpeed());
 	
 				// Store previous HexOn State
 				controller.rememberHexOn();

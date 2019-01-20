@@ -1,4 +1,4 @@
-package tomrad.spider;
+package tomrad.spider.controller.ps2;
 
 import static org.junit.Assert.assertFalse;
 
@@ -9,6 +9,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.runners.MockitoJUnitRunner;
+
+import tomrad.spider.GpioWiring;
+import tomrad.spider.WiringMock;
+import tomrad.spider.controller.ps2.PhoenixControlPs2;
+import tomrad.spider.gait.Gait;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PhoenixControlPs2Test {

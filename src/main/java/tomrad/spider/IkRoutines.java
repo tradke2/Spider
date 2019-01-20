@@ -79,11 +79,11 @@ public class IkRoutines {
 
 	// Body Inverse Kinematics
 	/** Global Input pitch of the body */
-	static double BodyRotX = 0;
+	public static double BodyRotX = 0;
 	/** Global Input rotation of the body */
-	static double BodyRotY = 0;
+	public static double BodyRotY = 0;
 	/** Global Input roll of the body */
-	static double BodyRotZ = 0;
+	public static double BodyRotZ = 0;
 
 	// Gait
 	/** Array containing Relative X position corresponding to the Gait */
@@ -99,9 +99,9 @@ public class IkRoutines {
 	public static double[] GaitRotY = new double[] { 0, 0, 0, 0, 0, 0 };
 
 	// Body position
-	static double BodyPosX = 0; // Global Input for the position of the body
-	static double BodyPosY = 0;
-	static double BodyPosZ = 0;
+	public static double BodyPosX = 0; // Global Input for the position of the body
+	public static double BodyPosY = 0;
+	public static double BodyPosZ = 0;
 
 	/** Actual X Posion of the Leg */
 	public static double[] LegPosX = new double[] { 0, 0, 0, 0, 0, 0 };

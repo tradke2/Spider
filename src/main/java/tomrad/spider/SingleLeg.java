@@ -1,21 +1,21 @@
 package tomrad.spider;
 
-import static tomrad.spider.Gait.cLF;
-import static tomrad.spider.Gait.cLM;
-import static tomrad.spider.Gait.cLR;
-import static tomrad.spider.Gait.cRF;
-import static tomrad.spider.Gait.cRM;
-import static tomrad.spider.Gait.cRR;
 import static tomrad.spider.IkRoutines.LegPosX;
 import static tomrad.spider.IkRoutines.LegPosY;
 import static tomrad.spider.IkRoutines.LegPosZ;
 import static tomrad.spider.IkRoutines.cInitPosX;
 import static tomrad.spider.IkRoutines.cInitPosY;
 import static tomrad.spider.IkRoutines.cInitPosZ;
-import static tomrad.spider.PhoenixControlPs2.SLHold;
-import static tomrad.spider.PhoenixControlPs2.SLLegX;
-import static tomrad.spider.PhoenixControlPs2.SLLegY;
-import static tomrad.spider.PhoenixControlPs2.SLLegZ;
+import static tomrad.spider.controller.ps2.PhoenixControlPs2.SLHold;
+import static tomrad.spider.controller.ps2.PhoenixControlPs2.SLLegX;
+import static tomrad.spider.controller.ps2.PhoenixControlPs2.SLLegY;
+import static tomrad.spider.controller.ps2.PhoenixControlPs2.SLLegZ;
+import static tomrad.spider.gait.Gait.cLF;
+import static tomrad.spider.gait.Gait.cLM;
+import static tomrad.spider.gait.Gait.cLR;
+import static tomrad.spider.gait.Gait.cRF;
+import static tomrad.spider.gait.Gait.cRM;
+import static tomrad.spider.gait.Gait.cRR;
 
 import java.util.Arrays;
 
@@ -35,7 +35,7 @@ public class SingleLeg {
 	private Logger log;
 
 	// [Single Leg Control]
-	static int SelectedLeg = 255;
+	public static int SelectedLeg = 255;
 	private int Prev_SelectedLeg = 255;
 	public static boolean AllDown = false;
 

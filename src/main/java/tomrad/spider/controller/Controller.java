@@ -1,6 +1,8 @@
-package tomrad.spider;
+package tomrad.spider.controller;
 
-interface Controller {
+import tomrad.spider.TravelLength;
+
+public interface Controller {
 
 	// --------------------------------------------------------------------
 	// [InitController] Initialize the PS2 controller

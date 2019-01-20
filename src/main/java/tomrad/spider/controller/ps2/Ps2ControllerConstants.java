@@ -1,22 +1,9 @@
-package tomrad.spider;
+package tomrad.spider.controller.ps2;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // File PiPS2.h
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 public class Ps2ControllerConstants {
-
-	// Bit Operation Macros
-//	def SET(x,y):
-//	    return x | (1<<y)	// Set bit y in x
-//
-//	def CLR(x,y):
-//	    return x & (~(1<<y)) // Clear bit y in x
-//
-//	def CHK(x,y):
-//	    return (x>>y) & 1 	// Check if bit y in x is set
-//
-//	def TOG(x,y):
-//	    return x ^ (1<<y) 	// Toggle bit y in x
 
 	// Delays
 	public static final int CLK_DELAY       = 4;	// determines the clk rate (microseconds per half cycle)

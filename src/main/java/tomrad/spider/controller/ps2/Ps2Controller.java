@@ -1,12 +1,14 @@
-package tomrad.spider;
+package tomrad.spider.controller.ps2;
 
-import static tomrad.spider.Ps2ControllerConstants.ANALOGMODE;
-import static tomrad.spider.Ps2ControllerConstants.BYTE_DELAY;
+import static tomrad.spider.controller.ps2.Ps2ControllerConstants.ANALOGMODE;
+import static tomrad.spider.controller.ps2.Ps2ControllerConstants.BYTE_DELAY;
 
 import java.util.Arrays;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import tomrad.spider.GpioWiring;
 
 public class Ps2Controller {
 

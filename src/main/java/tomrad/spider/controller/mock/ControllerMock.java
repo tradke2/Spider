@@ -1,4 +1,7 @@
-package tomrad.spider;
+package tomrad.spider.controller.mock;
+
+import tomrad.spider.TravelLength;
+import tomrad.spider.controller.Controller;
 
 public class ControllerMock implements Controller {
 
